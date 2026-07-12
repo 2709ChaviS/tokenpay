@@ -41,7 +41,7 @@ export default function Dashboard() {
   )
 
   const initials = user.email?.slice(0, 2).toUpperCase()
-  const firstName = user.email?.split('@')[0] || 'there'
+ const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]?.replace(/[0-9]/g, '') || 'there'
   const templateIcon: Record<string, string> = {
     logo_design: '🎨', website: '🌐', uiux: '✏️', social_media: '📱', custom: '📁'
   }
@@ -92,7 +92,9 @@ export default function Dashboard() {
           <div className="relative z-10 flex justify-between items-center">
             <div>
               <p className="text-gray-400 text-sm font-medium mb-1">👋 Welcome back</p>
-              <h1 className="text-4xl font-bold tracking-tight gradient-text capitalize">{firstName}</h1>
+              <h1 className="text-4xl font-bold tracking-tight gradient-text capitalize">
+  {firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()}
+</h1>
               <p className="text-gray-400 text-sm mt-2">Here's what's happening with your projects today.</p>
             </div>
             <button
