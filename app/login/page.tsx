@@ -13,7 +13,7 @@ export default function LoginPage() {
     await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: 'http://localhost:3000/auth/callback'
+        emailRedirectTo: 'https://tokenpay-psmsk5hq7-chavi.vercel.app/auth/callback'
       }
     })
     setSent(true)
