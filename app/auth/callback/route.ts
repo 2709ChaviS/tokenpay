@@ -6,10 +6,7 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const token_hash = url.searchParams.get('token_hash')
   const type = url.searchParams.get('type')
-
-  if (!token_hash || !type) {
-    return NextResponse.redirect(new URL('/login', url.origin))
-  }
+  const code = url.searchParams.get('code')
 
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -27,15 +24,21 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  const { error } = await supabase.auth.verifyOtp({
-    token_hash,
-    type: type as any,
-  })
-
-  if (error) {
-    console.log('OTP Error:', error.message)
-    return NextResponse.redirect(new URL('/login?error=' + error.message, url.origin))
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code)
+    return NextResponse.redirect(new URL('/dashboard', url.origin))
   }
 
-  return NextResponse.redirect(new URL('/dashboard', url.origin))
+  if (token_hash && type) {
+    const cleanHash = token_hash.replace('pkce_', '')
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: cleanHash,
+      type: type as any,
+    })
+    if (!error) {
+      return NextResponse.redirect(new URL('/dashboard', url.origin))
+    }
+  }
+
+  return NextResponse.redirect(new URL('/login', url.origin))
 }
