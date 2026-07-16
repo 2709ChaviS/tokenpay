@@ -33,7 +33,7 @@ export default function Home() {
           <Link href="/login" className="bg-black text-white px-6 py-3 rounded-xl font-medium hover:bg-gray-800 transition-colors">
             Start for free
           </Link>
-          <a href="/demo" className="border border-gray-200 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors text-gray-600">
+          <a href="#how-it-works" className="border border-gray-200 px-6 py-3 rounded-xl font-medium hover:bg-gray-50 transition-colors text-gray-600">
           See how it works
         </a>
         </div>
