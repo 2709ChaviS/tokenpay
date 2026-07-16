@@ -5,6 +5,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const url = new URL(request.url)
   const code = url.searchParams.get('code')
+  const token_hash = url.searchParams.get('token_hash')
   const type = url.searchParams.get('type')
 
   const cookieStore = await cookies()
@@ -23,14 +24,14 @@ export async function GET(request: NextRequest) {
     }
   )
 
-  if (code && type === 'magiclink') {
-    const { error } = await supabase.auth.verifyOtp({
-      token_hash: code,
-      type: 'magiclink',
-    })
-    if (!error) {
-      return NextResponse.redirect(new URL('/dashboard', url.origin))
-    }
+  if (token_hash && type) {
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type: type as any })
+    if (!error) return NextResponse.redirect(new URL('/dashboard', url.origin))
+  }
+
+  if (code) {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) return NextResponse.redirect(new URL('/dashboard', url.origin))
   }
 
   return NextResponse.redirect(new URL('/login', url.origin))
