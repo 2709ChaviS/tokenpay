@@ -8,13 +8,40 @@ export default function NewClientPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
-  async function handleSubmit() {
-    setLoading(true)
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('clients').insert({ ...form, freelancer_id: user?.id })
-    router.push('/clients')
+ async function handleSubmit() {
+  setLoading(true)
+
+  const supabase = createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    alert("Please login again.")
+    setLoading(false)
+    return
   }
+
+  const { data, error } = await supabase
+    .from("clients")
+    .insert({
+      ...form,
+      freelancer_id: user.id,
+    })
+    .select()
+
+  console.log("Inserted:", data)
+  console.log("Error:", error)
+
+  if (error) {
+    alert(error.message)
+    setLoading(false)
+    return
+  }
+
+  router.push("/clients")
+}
 
   const fields = [
     { key: 'name', label: 'Client Name', placeholder: 'Rahul Sharma', required: true },
