@@ -13,6 +13,7 @@ export default function Dashboard() {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       await new Promise(resolve => setTimeout(resolve, 500))
+      
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
       const { data: proj } = await supabase
