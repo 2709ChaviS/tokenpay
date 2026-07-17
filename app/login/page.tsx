@@ -81,15 +81,15 @@ export default function LoginPage() {
                 inputMode="numeric"
                 placeholder="123456"
                 value={otp}
-                onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                onKeyDown={e => e.key === 'Enter' && otp.length === 6 && verifyOtp()}
+                onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                onKeyDown={e => e.key === 'Enter' && otp.length >= 6 && verifyOtp()}
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-black text-center tracking-[0.5em] font-mono"
-                maxLength={6}
+                maxLength={8}
               />
               {error && <p className="text-red-500 text-xs">{error}</p>}
               <button
                 onClick={verifyOtp}
-                disabled={loading || otp.length !== 6}
+                disabled={loading || otp.length < 6}
                 className="w-full bg-black text-white py-2.5 rounded-xl font-medium text-sm disabled:opacity-40"
               >
                 {loading ? 'Verifying...' : 'Verify & login'}
