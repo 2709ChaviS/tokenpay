@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -34,7 +34,6 @@ export default function InvoicesPage() {
     load()
   }, [])
 
-  // Group unbilled items by client — one invoice can only ever belong to one client
   const groups = items.reduce((acc: Record<string, any[]>, item) => {
     const key = item.client_id
     if (!acc[key]) acc[key] = []
@@ -67,9 +66,13 @@ export default function InvoicesPage() {
       return
     }
 
-    // Remove these items from the unbilled pool so they don't get invoiced twice
     const itemIds = clientItems.map(i => i.id)
+    const tokenIds = clientItems.map(i => i.token_id).filter(Boolean)
+
     await supabase.from('invoice_items').delete().in('id', itemIds)
+    if (tokenIds.length > 0) {
+      await supabase.from('tokens').update({ status: 'invoiced' }).in('id', tokenIds)
+    }
 
     if (invoice) {
       setInvoices([invoice, ...invoices])
@@ -101,7 +104,6 @@ export default function InvoicesPage() {
           <p className="text-gray-400 text-sm mt-1">Auto-generated from approved milestones</p>
         </div>
 
-        {/* Unbilled items — one card per client */}
         {Object.entries(groups).map(([clientId, clientItems]) => {
           const subtotal = clientItems.reduce((sum, i) => sum + (i.amount_inr || 0), 0)
           const grandTotal = clientItems.reduce((sum, i) => sum + (i.final_amount || 0), 0)
@@ -155,7 +157,6 @@ export default function InvoicesPage() {
           )
         })}
 
-        {/* Empty state */}
         {items.length === 0 && invoices.length === 0 && (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
             <p className="text-3xl mb-3">🧾</p>
@@ -164,7 +165,6 @@ export default function InvoicesPage() {
           </div>
         )}
 
-        {/* Past invoices */}
         {invoices.length > 0 && (
           <div className="space-y-3">
             <h3 className="font-semibold">Past Invoices</h3>

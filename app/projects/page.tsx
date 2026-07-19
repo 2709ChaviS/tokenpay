@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -22,11 +22,27 @@ export default function ProjectsPage() {
   }, [])
 
   async function deleteProject(id: string) {
-    if (!confirm('Delete this project? All tokens will also be deleted.')) return
+    if (!confirm('Delete this project? All tokens and invoice records for it will also be deleted.')) return
     setDeleting(id)
     const supabase = createClient()
-    await supabase.from('tokens').delete().eq('project_id', id)
-    await supabase.from('projects').delete().eq('id', id)
+
+    const { data: projectTokens } = await supabase.from('tokens').select('id').eq('project_id', id)
+    const tokenIds = (projectTokens || []).map((t: any) => t.id)
+
+    if (tokenIds.length > 0) {
+      const { error: sessionsErr } = await supabase.from('client_sessions').delete().in('token_id', tokenIds)
+      if (sessionsErr) { alert('Could not delete: ' + sessionsErr.message); setDeleting(null); return }
+    }
+
+    const { error: itemsErr } = await supabase.from('invoice_items').delete().eq('project_id', id)
+    if (itemsErr) { alert('Could not delete: ' + itemsErr.message); setDeleting(null); return }
+
+    const { error: tokensErr } = await supabase.from('tokens').delete().eq('project_id', id)
+    if (tokensErr) { alert('Could not delete: ' + tokensErr.message); setDeleting(null); return }
+
+    const { error: projectErr } = await supabase.from('projects').delete().eq('id', id)
+    if (projectErr) { alert('Could not delete: ' + projectErr.message); setDeleting(null); return }
+
     setProjects(projects.filter(p => p.id !== id))
     setDeleting(null)
   }
@@ -86,7 +102,6 @@ export default function ProjectsPage() {
                 className="fade-up card-lift glass rounded-2xl px-5 py-4 flex justify-between items-center group"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
-                {/* Left — clickable */}
                 <div
                   className="flex items-center gap-4 flex-1 cursor-pointer"
                   onClick={() => router.push(`/projects/${p.id}`)}
@@ -100,7 +115,6 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
-                {/* Right — status + delete */}
                 <div className="flex items-center gap-3">
                   <span className="badge badge-active">{p.status}</span>
                   <span
@@ -108,7 +122,6 @@ export default function ProjectsPage() {
                     onClick={() => router.push(`/projects/${p.id}`)}
                   >→</span>
 
-                  {/* Delete button — shows on hover */}
                   <button
                     onClick={() => deleteProject(p.id)}
                     disabled={deleting === p.id}

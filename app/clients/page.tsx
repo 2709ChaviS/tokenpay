@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 export default function ClientsPage() {
   const [clients, setClients] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
+  const [deleting, setDeleting] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -17,6 +18,45 @@ export default function ClientsPage() {
       setClients(c || [])
     })
   }, [])
+
+  async function deleteClient(id: string) {
+    if (!confirm('Delete this client? All their projects, tokens, and invoices will also be deleted.')) return
+    setDeleting(id)
+    const supabase = createClient()
+
+    const { data: clientProjects } = await supabase.from('projects').select('id').eq('client_id', id)
+    const projectIds = (clientProjects || []).map((p: any) => p.id)
+
+    if (projectIds.length > 0) {
+      const { data: projectTokens } = await supabase.from('tokens').select('id').in('project_id', projectIds)
+      const tokenIds = (projectTokens || []).map((t: any) => t.id)
+
+      if (tokenIds.length > 0) {
+        const { error: sessionsErr } = await supabase.from('client_sessions').delete().in('token_id', tokenIds)
+        if (sessionsErr) { alert('Could not delete: ' + sessionsErr.message); setDeleting(null); return }
+      }
+    }
+
+    const { error: itemsErr } = await supabase.from('invoice_items').delete().eq('client_id', id)
+    if (itemsErr) { alert('Could not delete: ' + itemsErr.message); setDeleting(null); return }
+
+    const { error: invoicesErr } = await supabase.from('invoices').delete().eq('client_id', id)
+    if (invoicesErr) { alert('Could not delete: ' + invoicesErr.message); setDeleting(null); return }
+
+    if (projectIds.length > 0) {
+      const { error: tokensErr } = await supabase.from('tokens').delete().in('project_id', projectIds)
+      if (tokensErr) { alert('Could not delete: ' + tokensErr.message); setDeleting(null); return }
+
+      const { error: projectsErr } = await supabase.from('projects').delete().eq('client_id', id)
+      if (projectsErr) { alert('Could not delete: ' + projectsErr.message); setDeleting(null); return }
+    }
+
+    const { error: clientErr } = await supabase.from('clients').delete().eq('id', id)
+    if (clientErr) { alert('Could not delete: ' + clientErr.message); setDeleting(null); return }
+
+    setClients(clients.filter(c => c.id !== id))
+    setDeleting(null)
+  }
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -59,7 +99,7 @@ export default function ClientsPage() {
         ) : (
           <div className="space-y-2">
             {clients.map(c => (
-              <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-center hover:border-gray-300 hover:shadow-sm transition-all">
+              <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-center hover:border-gray-300 hover:shadow-sm transition-all group">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
                     <span className="text-sm font-bold text-gray-500">{c.name?.slice(0, 2).toUpperCase()}</span>
@@ -69,9 +109,19 @@ export default function ClientsPage() {
                     <p className="text-xs text-gray-400 mt-0.5">{c.email} {c.company ? '· ' + c.company : ''}</p>
                   </div>
                 </div>
-                {c.gst_number && (
-                  <span className="text-xs bg-gray-50 text-gray-400 px-3 py-1 rounded-full border border-gray-100">GST: {c.gst_number}</span>
-                )}
+                <div className="flex items-center gap-3">
+                  {c.gst_number && (
+                    <span className="text-xs bg-gray-50 text-gray-400 px-3 py-1 rounded-full border border-gray-100">GST: {c.gst_number}</span>
+                  )}
+                  <button
+                    onClick={() => deleteClient(c.id)}
+                    disabled={deleting === c.id}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center border border-transparent hover:border-red-100"
+                    title="Delete client"
+                  >
+                    {deleting === c.id ? '...' : '🗑'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

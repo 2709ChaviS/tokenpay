@@ -38,6 +38,10 @@ export default function NewProjectPage() {
   const [form, setForm] = useState({ name: '', client_id: '', template_type: '' })
   const [tokens, setTokens] = useState<{ name: string; description: string; value_inr: string }[]>([])
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [showNewClient, setShowNewClient] = useState(false)
+  const [newClient, setNewClient] = useState({ name: '', email: '' })
+  const [savingClient, setSavingClient] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -49,6 +53,41 @@ export default function NewProjectPage() {
       })
     })
   }, [])
+
+  function handleClientSelect(value: string) {
+    if (value === '__new__') {
+      setShowNewClient(true)
+      setForm({ ...form, client_id: '' })
+    } else {
+      setShowNewClient(false)
+      setForm({ ...form, client_id: value })
+    }
+  }
+
+  async function saveNewClient() {
+    setSavingClient(true)
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSavingClient(false); return }
+
+    const { data, error } = await supabase.from('clients').insert({
+      name: newClient.name,
+      email: newClient.email,
+      freelancer_id: user.id,
+    }).select().single()
+
+    if (error) {
+      alert('Could not add client: ' + error.message)
+      setSavingClient(false)
+      return
+    }
+
+    setClients([...clients, data])
+    setForm({ ...form, client_id: data.id })
+    setShowNewClient(false)
+    setNewClient({ name: '', email: '' })
+    setSavingClient(false)
+  }
 
   function selectTemplate(type: string) {
     setForm({ ...form, template_type: type })
@@ -73,27 +112,47 @@ export default function NewProjectPage() {
 
   async function handleSubmit() {
     setLoading(true)
+    setError('')
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    const { data: project } = await supabase.from('projects').insert({
+
+    if (!user) {
+      setError('Session expired. Please log in again.')
+      setLoading(false)
+      router.push('/login')
+      return
+    }
+
+    const { data: project, error: projectError } = await supabase.from('projects').insert({
       name: form.name,
       client_id: form.client_id,
-      freelancer_id: user?.id,
+      freelancer_id: user.id,
       template_type: form.template_type,
     }).select().single()
 
-    if (project) {
-      await supabase.from('tokens').insert(
-        tokens.map((t, i) => ({
-          project_id: project.id,
-          name: t.name,
-          description: t.description,
-          value_inr: parseFloat(t.value_inr) || 0,
-          position: i + 1,
-          status: 'pending',
-        }))
-      )
+    if (projectError || !project) {
+      setError(projectError?.message || 'Could not create project.')
+      setLoading(false)
+      return
     }
+
+    const { error: tokensError } = await supabase.from('tokens').insert(
+      tokens.map((t, i) => ({
+        project_id: project.id,
+        name: t.name,
+        description: t.description,
+        value_inr: parseFloat(t.value_inr) || 0,
+        position: i + 1,
+        status: 'pending',
+      }))
+    )
+
+    if (tokensError) {
+      setError(tokensError.message)
+      setLoading(false)
+      return
+    }
+
     router.push('/dashboard')
   }
 
@@ -105,7 +164,6 @@ export default function NewProjectPage() {
       <div className="max-w-2xl mx-auto p-6 space-y-6">
         <h2 className="text-2xl font-bold">New Project</h2>
 
-        {/* Project basics */}
         <div className="bg-white rounded-xl border p-6 space-y-4">
           <div>
             <label className="text-sm font-medium text-gray-700">Project Name</label>
@@ -121,16 +179,50 @@ export default function NewProjectPage() {
             <label className="text-sm font-medium text-gray-700">Client</label>
             <select
               value={form.client_id}
-              onChange={e => setForm({ ...form, client_id: e.target.value })}
+              onChange={e => handleClientSelect(e.target.value)}
               className="mt-1 w-full border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
             >
               <option value="">Select client</option>
               {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              <option value="__new__">+ Add new client</option>
             </select>
+
+            {showNewClient && (
+              <div className="mt-3 border rounded-lg p-4 space-y-2 bg-gray-50">
+                <input
+                  type="text"
+                  placeholder="Client name"
+                  value={newClient.name}
+                  onChange={e => setNewClient({ ...newClient, name: e.target.value })}
+                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
+                />
+                <input
+                  type="email"
+                  placeholder="Client email"
+                  value={newClient.email}
+                  onChange={e => setNewClient({ ...newClient, email: e.target.value })}
+                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
+                />
+                <div className="flex gap-2">
+                  <button
+                    onClick={saveNewClient}
+                    disabled={savingClient || !newClient.name || !newClient.email}
+                    className="bg-black text-white px-4 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40"
+                  >
+                    {savingClient ? 'Saving...' : 'Save Client'}
+                  </button>
+                  <button
+                    onClick={() => { setShowNewClient(false); setNewClient({ name: '', email: '' }) }}
+                    className="border px-4 py-1.5 rounded-lg text-xs font-medium"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Template picker */}
         <div className="bg-white rounded-xl border p-6 space-y-3">
           <label className="text-sm font-medium text-gray-700">Pick a template</label>
           <div className="grid grid-cols-2 gap-3">
@@ -152,7 +244,6 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        {/* Tokens */}
         {form.template_type && (
           <div className="bg-white rounded-xl border p-6 space-y-4">
             <div className="flex justify-between items-center">
@@ -194,7 +285,7 @@ export default function NewProjectPage() {
           </div>
         )}
 
-        {/* Submit */}
+        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
         {tokens.length > 0 && (
           <button
             onClick={handleSubmit}

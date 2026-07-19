@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -74,7 +74,7 @@ export default function LoginPage() {
           ) : (
             <>
               <p className="text-xs text-gray-400 text-center">
-                6-digit code sent to <span className="font-medium text-black">{email}</span>
+                8-digit code sent to <span className="font-medium text-black">{email}</span>
               </p>
               <input
                 type="text"
