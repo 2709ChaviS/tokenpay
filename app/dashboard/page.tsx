@@ -7,23 +7,49 @@ export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
   const [projects, setProjects] = useState<any[]>([])
   const [stats, setStats] = useState({ active: 0, pending: 0, unbilled: 0 })
+  const [profileName, setProfileName] = useState('')
   const router = useRouter()
 
   useEffect(() => {
     const supabase = createClient()
     supabase.auth.getUser().then(async ({ data }) => {
       await new Promise(resolve => setTimeout(resolve, 500))
-      
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
+
+      const { data: profile } = await supabase.from('users').select('name').eq('id', data.user.id).single()
+      setProfileName(profile?.name || '')
+
       const { data: proj } = await supabase
         .from('projects').select('*, clients(name)')
         .eq('freelancer_id', data.user.id)
         .order('created_at', { ascending: false }).limit(5)
-      setProjects(proj || [])
+
       const { data: tokens } = await supabase
-        .from('tokens').select('status, value_inr, projects!inner(freelancer_id)')
+        .from('tokens').select('status, value_inr, project_id, projects!inner(freelancer_id)')
         .eq('projects.freelancer_id', data.user.id)
+
+      if (tokens && proj) {
+        // Self-heal: if every milestone in a project is invoiced/paid but the project
+        // still shows 'active' (e.g. from before this status tracking existed), fix it now.
+        const byProject: Record<string, any[]> = {}
+        tokens.forEach((t: any) => {
+          if (!byProject[t.project_id]) byProject[t.project_id] = []
+          byProject[t.project_id].push(t)
+        })
+        const toComplete = proj.filter((p: any) =>
+          p.status === 'active' &&
+          byProject[p.id]?.length > 0 &&
+          byProject[p.id].every((t: any) => t.status === 'invoiced' || t.status === 'paid')
+        )
+        if (toComplete.length > 0) {
+          await supabase.from('projects').update({ status: 'completed' }).in('id', toComplete.map((p: any) => p.id))
+          toComplete.forEach((p: any) => { p.status = 'completed' })
+        }
+      }
+
+      setProjects(proj || [])
+
       if (tokens) {
         const active = (proj || []).filter((p: any) => p.status === 'active').length
         const pending = tokens.filter(t => t.status === 'submitted').length
@@ -43,7 +69,7 @@ export default function Dashboard() {
   )
 
   const initials = user.email?.slice(0, 2).toUpperCase()
- const firstName = user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]?.replace(/[0-9]/g, '') || 'there'
+ const firstName = profileName?.split(' ')[0] || user.user_metadata?.full_name?.split(' ')[0] || user.email?.split('@')[0]?.replace(/[0-9]/g, '') || 'there'
   const templateIcon: Record<string, string> = {
     logo_design: '🎨', website: '🌐', uiux: '✏️', social_media: '📱', custom: '📁'
   }

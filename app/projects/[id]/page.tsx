@@ -67,9 +67,9 @@ export default function ProjectPage() {
   }
 
   const total = tokens.reduce((sum, t) => sum + (t.value_inr || 0), 0)
-  const earned = tokens.filter(t => t.status === 'approved' || t.status === 'paid').reduce((sum, t) => sum + (t.value_inr || 0), 0)
+  const earned = tokens.filter(t => t.status === 'approved' || t.status === 'invoiced' || t.status === 'paid').reduce((sum, t) => sum + (t.value_inr || 0), 0)
   const progress = total > 0 ? Math.round((earned / total) * 100) : 0
-  const approvedCount = tokens.filter(t => t.status === 'approved' || t.status === 'paid').length
+  const approvedCount = tokens.filter(t => t.status === 'approved' || t.status === 'invoiced' || t.status === 'paid').length
 
   const templateIcon: Record<string, string> = {
     logo_design: '🎨', website: '🌐', uiux: '✏️', social_media: '📱', custom: '📁'
@@ -80,6 +80,7 @@ export default function ProjectPage() {
     submitted: { label: 'Awaiting client', cls: 'bg-orange-50 text-orange-600 border border-orange-200' },
     approved: { label: 'Approved', cls: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
     disputed: { label: 'Disputed', cls: 'bg-red-50 text-red-500 border border-red-200' },
+    invoiced: { label: 'Invoiced', cls: 'bg-purple-50 text-purple-600 border border-purple-200' },
     paid: { label: 'Paid', cls: 'bg-blue-50 text-blue-600 border border-blue-200' },
   }
 

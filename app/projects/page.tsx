@@ -17,6 +17,28 @@ export default function ProjectsPage() {
         .select('*, clients(name, email)')
         .eq('freelancer_id', data.user.id)
         .order('created_at', { ascending: false })
+
+      if (proj && proj.length > 0) {
+        const { data: allTokens } = await supabase
+          .from('tokens').select('status, project_id, projects!inner(freelancer_id)')
+          .eq('projects.freelancer_id', data.user.id)
+
+        const byProject: Record<string, any[]> = {}
+        ;(allTokens || []).forEach((t: any) => {
+          if (!byProject[t.project_id]) byProject[t.project_id] = []
+          byProject[t.project_id].push(t)
+        })
+        const toComplete = proj.filter((p: any) =>
+          p.status === 'active' &&
+          byProject[p.id]?.length > 0 &&
+          byProject[p.id].every((t: any) => t.status === 'invoiced' || t.status === 'paid')
+        )
+        if (toComplete.length > 0) {
+          await supabase.from('projects').update({ status: 'completed' }).in('id', toComplete.map((p: any) => p.id))
+          toComplete.forEach((p: any) => { p.status = 'completed' })
+        }
+      }
+
       setProjects(proj || [])
     })
   }, [])
@@ -26,6 +48,7 @@ export default function ProjectsPage() {
     setDeleting(id)
     const supabase = createClient()
 
+    // Delete in FK-dependency order: client_sessions -> invoice_items -> tokens -> projects
     const { data: projectTokens } = await supabase.from('tokens').select('id').eq('project_id', id)
     const tokenIds = (projectTokens || []).map((t: any) => t.id)
 
@@ -102,6 +125,7 @@ export default function ProjectsPage() {
                 className="fade-up card-lift glass rounded-2xl px-5 py-4 flex justify-between items-center group"
                 style={{ animationDelay: `${i * 50}ms` }}
               >
+                {/* Left — clickable */}
                 <div
                   className="flex items-center gap-4 flex-1 cursor-pointer"
                   onClick={() => router.push(`/projects/${p.id}`)}
@@ -115,6 +139,7 @@ export default function ProjectsPage() {
                   </div>
                 </div>
 
+                {/* Right — status + delete */}
                 <div className="flex items-center gap-3">
                   <span className="badge badge-active">{p.status}</span>
                   <span
@@ -122,6 +147,7 @@ export default function ProjectsPage() {
                     onClick={() => router.push(`/projects/${p.id}`)}
                   >→</span>
 
+                  {/* Delete button — shows on hover */}
                   <button
                     onClick={() => deleteProject(p.id)}
                     disabled={deleting === p.id}

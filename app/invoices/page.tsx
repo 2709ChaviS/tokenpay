@@ -9,6 +9,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<any[]>([])
   const [user, setUser] = useState<any>(null)
   const [generatingFor, setGeneratingFor] = useState<string | null>(null)
+  const [deletingInvoice, setDeletingInvoice] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -34,6 +35,7 @@ export default function InvoicesPage() {
     load()
   }, [])
 
+  // Group unbilled items by client — one invoice can only ever belong to one client
   const groups = items.reduce((acc: Record<string, any[]>, item) => {
     const key = item.client_id
     if (!acc[key]) acc[key] = []
@@ -66,6 +68,7 @@ export default function InvoicesPage() {
       return
     }
 
+    // Remove these items from the unbilled pool so they don't get invoiced twice
     const itemIds = clientItems.map(i => i.id)
     const tokenIds = clientItems.map(i => i.token_id).filter(Boolean)
 
@@ -74,12 +77,38 @@ export default function InvoicesPage() {
       await supabase.from('tokens').update({ status: 'invoiced' }).in('id', tokenIds)
     }
 
+    // If every milestone in a project is now invoiced/paid, mark the project completed
+    const projectIds = [...new Set(clientItems.map(i => i.project_id).filter(Boolean))]
+    for (const projectId of projectIds) {
+      const { data: allTokens } = await supabase.from('tokens').select('status').eq('project_id', projectId)
+      const allDone = (allTokens || []).every((t: any) => t.status === 'invoiced' || t.status === 'paid')
+      if (allDone && allTokens && allTokens.length > 0) {
+        await supabase.from('projects').update({ status: 'completed' }).eq('id', projectId)
+      }
+    }
+
     if (invoice) {
       setInvoices([invoice, ...invoices])
       setItems(items.filter(i => !itemIds.includes(i.id)))
       alert('Invoice ' + invoiceNumber + ' generated! Total: Rs. ' + grandTotal.toLocaleString())
     }
     setGeneratingFor(null)
+  }
+
+  async function deleteInvoice(id: string) {
+    if (!confirm('Delete this invoice? This cannot be undone.')) return
+    setDeletingInvoice(id)
+    const supabase = createClient()
+    const { error } = await supabase.from('invoices').delete().eq('id', id)
+
+    if (error) {
+      alert('Could not delete: ' + error.message)
+      setDeletingInvoice(null)
+      return
+    }
+
+    setInvoices(invoices.filter(inv => inv.id !== id))
+    setDeletingInvoice(null)
   }
 
   return (
@@ -104,6 +133,7 @@ export default function InvoicesPage() {
           <p className="text-gray-400 text-sm mt-1">Auto-generated from approved milestones</p>
         </div>
 
+        {/* Unbilled items — one card per client */}
         {Object.entries(groups).map(([clientId, clientItems]) => {
           const subtotal = clientItems.reduce((sum, i) => sum + (i.amount_inr || 0), 0)
           const grandTotal = clientItems.reduce((sum, i) => sum + (i.final_amount || 0), 0)
@@ -157,6 +187,7 @@ export default function InvoicesPage() {
           )
         })}
 
+        {/* Empty state */}
         {items.length === 0 && invoices.length === 0 && (
           <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
             <p className="text-3xl mb-3">🧾</p>
@@ -165,6 +196,7 @@ export default function InvoicesPage() {
           </div>
         )}
 
+        {/* Past invoices */}
         {invoices.length > 0 && (
           <div className="space-y-3">
             <h3 className="font-semibold">Past Invoices</h3>
@@ -184,6 +216,14 @@ export default function InvoicesPage() {
                   <div className="flex items-center gap-2">
                     <InvoiceDownloadButton invoice={inv} />
                     <span className="text-xs bg-gray-50 text-gray-500 px-3 py-1 rounded-full border border-gray-100">{inv.status}</span>
+                    <button
+                      onClick={() => deleteInvoice(inv.id)}
+                      disabled={deletingInvoice === inv.id}
+                      className="text-xs text-red-400 hover:text-red-600 hover:bg-red-50 w-7 h-7 rounded-lg flex items-center justify-center border border-transparent hover:border-red-100 transition-colors"
+                      title="Delete invoice"
+                    >
+                      {deletingInvoice === inv.id ? '...' : '🗑'}
+                    </button>
                   </div>
                 </div>
               )

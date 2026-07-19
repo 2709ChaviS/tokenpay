@@ -7,6 +7,8 @@ export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
   const [form, setForm] = useState({ name: '', gst_number: '', pan_number: '' })
   const [saved, setSaved] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
   const router = useRouter()
 
   useEffect(() => {
@@ -20,9 +22,19 @@ export default function SettingsPage() {
   }, [])
 
   async function handleSave() {
+    setSaving(true)
+    setError('')
     const supabase = createClient()
-    await supabase.from('users').update(form).eq('id', user.id)
+    const { error } = await supabase.from('users').update(form).eq('id', user.id)
+
+    if (error) {
+      setError('Could not save: ' + error.message)
+      setSaving(false)
+      return
+    }
+
     setSaved(true)
+    setSaving(false)
     setTimeout(() => setSaved(false), 2000)
   }
 
@@ -90,11 +102,13 @@ export default function SettingsPage() {
             </div>
           ))}
 
+          {error && <p className="text-red-500 text-sm">{error}</p>}
           <button
             onClick={handleSave}
-            className="shine btn-press bg-black text-white px-6 py-2.5 rounded-xl text-sm font-semibold"
+            disabled={saving}
+            className="shine btn-press bg-black text-white px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
           >
-            {saved ? '✓ Saved!' : 'Save Changes'}
+            {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
           </button>
         </div>
 
