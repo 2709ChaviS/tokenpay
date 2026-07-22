@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 const DEMO_EMAIL = 'demo@tokenpay.app';
-const DEMO_PASSWORD = 'demo@26';
+const DEMO_PASSWORD = 'Demo2026Pass';
 
 export default function LoginPage() {
   const router = useRouter();
