@@ -48,7 +48,6 @@ export default function ProjectsPage() {
     setDeleting(id)
     const supabase = createClient()
 
-    // Delete in FK-dependency order: client_sessions -> invoice_items -> tokens -> projects
     const { data: projectTokens } = await supabase.from('tokens').select('id').eq('project_id', id)
     const tokenIds = (projectTokens || []).map((t: any) => t.id)
 
@@ -70,91 +69,114 @@ export default function ProjectsPage() {
     setDeleting(null)
   }
 
-  const templateIcon: Record<string, string> = {
-    logo_design: '🎨', website: '🌐', uiux: '✏️', social_media: '📱', custom: '📁'
+  const templateLabel: Record<string, string> = {
+    logo_design: 'Logo', website: 'Web', uiux: 'UI/UX', social_media: 'Social', custom: 'Custom'
   }
 
   return (
-    <div className="min-h-screen bg-dots relative">
-      <nav className="slide-down sticky top-4 z-50 mx-4 mt-4">
-        <div className="glass rounded-2xl px-6 py-3 flex justify-between items-center max-w-6xl mx-auto">
+    <div className="relative min-h-screen bg-black overflow-hidden">
+      <div className="aurora-corner" />
+
+      <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
-            <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center shadow-sm">
-              <span className="text-white text-sm font-bold">T</span>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <span className="text-black text-xs font-mono font-bold">T</span>
             </div>
-            <span className="text-base font-bold tracking-tight">TokenPay</span>
+            <span className="text-base font-semibold tracking-tight text-white">TokenPay</span>
           </div>
           <div className="flex items-center gap-7">
-            {[{ label: 'Projects', path: '/projects' }, { label: 'Clients', path: '/clients' }, { label: 'Invoices', path: '/invoices' }].map(item => (
-              <button key={item.path} onClick={() => router.push(item.path)} className="nav-link text-sm text-gray-500 font-medium pb-0.5">{item.label}</button>
+            {[
+              { label: 'Projects', path: '/projects' },
+              { label: 'Clients', path: '/clients' },
+              { label: 'Invoices', path: '/invoices' },
+            ].map(item => (
+              <button
+                key={item.path}
+                onClick={() => router.push(item.path)}
+                className="text-sm text-white/50 hover:text-white font-medium transition-colors"
+              >
+                {item.label}
+              </button>
             ))}
-            <div onClick={() => router.push('/settings')} className="w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-600 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-gray-300 transition-all">
-              <span className="text-xs font-bold text-white">CH</span>
+            <div
+              onClick={() => router.push('/settings')}
+              className="w-8 h-8 bg-white/10 border border-white/10 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white/20 transition-all"
+            >
+              <span className="text-xs font-mono font-bold text-white">CH</span>
             </div>
           </div>
         </div>
       </nav>
 
-      <div className="max-w-4xl mx-auto px-8 py-10 space-y-6 relative z-10">
+      <div className="relative z-10 max-w-4xl mx-auto px-8 py-10 space-y-6">
         <div className="fade-up flex justify-between items-center">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight">Projects</h1>
-            <p className="text-gray-400 text-sm mt-1">{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
+            <h1 className="font-display text-4xl font-semibold tracking-tight text-white/90">Projects</h1>
+            <p className="text-white/40 text-sm mt-1">{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
           </div>
           <button
             onClick={() => router.push('/projects/new')}
-            className="shine btn-press bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-sm"
+            className="shine btn-press bg-white text-black px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
           >
             + New Project
           </button>
         </div>
 
         {projects.length === 0 ? (
-          <div className="fade-up-1 glass rounded-2xl border-2 border-dashed border-gray-200 p-16 text-center">
-            <p className="text-4xl mb-3">📂</p>
-            <p className="text-gray-500 font-medium">No projects yet</p>
-            <button onClick={() => router.push('/projects/new')} className="mt-4 shine btn-press bg-black text-white px-5 py-2.5 rounded-xl text-sm font-semibold">
+          <div className="fade-up-1 rounded-2xl border border-dashed border-white/15 p-16 text-center">
+            <p className="text-white/50 font-medium">No projects yet</p>
+            <button
+              onClick={() => router.push('/projects/new')}
+              className="mt-4 shine btn-press bg-white text-black px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
+            >
               Create Project
             </button>
           </div>
         ) : (
           <div className="space-y-2">
-            {projects.map((p, i) => (
+            {projects.map((p) => (
               <div
                 key={p.id}
-                className="fade-up card-lift glass rounded-2xl px-5 py-4 flex justify-between items-center group"
-                style={{ animationDelay: `${i * 50}ms` }}
+                className="fade-up card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group"
               >
-                {/* Left — clickable */}
                 <div
                   className="flex items-center gap-4 flex-1 cursor-pointer"
                   onClick={() => router.push(`/projects/${p.id}`)}
                 >
-                  <div className="w-11 h-11 bg-gray-50 rounded-xl flex items-center justify-center text-xl border border-gray-100 group-hover:scale-110 transition-transform">
-                    {templateIcon[p.template_type] || '📁'}
-                  </div>
+                  <span className="font-mono text-xs font-medium text-white/40 w-14 shrink-0">
+                    {templateLabel[p.template_type] || 'Custom'}
+                  </span>
                   <div>
-                    <p className="font-semibold text-sm">{p.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{p.clients?.name} · {p.clients?.email}</p>
+                    <p className="font-medium text-sm text-white">{p.name}</p>
+                    <p className="text-xs text-white/40 mt-0.5">{p.clients?.name} · {p.clients?.email}</p>
                   </div>
                 </div>
 
-                {/* Right — status + delete */}
                 <div className="flex items-center gap-3">
-                  <span className="badge badge-active">{p.status}</span>
+                 <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+  p.status === 'completed'
+    ? 'text-paid border-paid/30 bg-paid/10'
+    : p.status === 'active'
+    ? 'text-pending border-pending/30 bg-pending/10'
+    : 'text-white/50 border-white/10'
+}`}>
+  {p.status}
+</span>
                   <span
-                    className="text-gray-200 group-hover:text-gray-500 group-hover:translate-x-1 transition-all text-lg cursor-pointer"
+                    className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all cursor-pointer inline-block"
                     onClick={() => router.push(`/projects/${p.id}`)}
-                  >→</span>
+                  >
+                    →
+                  </span>
 
-                  {/* Delete button — shows on hover */}
                   <button
                     onClick={() => deleteProject(p.id)}
                     disabled={deleting === p.id}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity btn-press text-red-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center border border-transparent hover:border-red-100"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity btn-press text-overdue hover:bg-overdue/10 w-8 h-8 rounded-lg flex items-center justify-center border border-transparent hover:border-overdue/20"
                     title="Delete project"
                   >
-                    {deleting === p.id ? '...' : '🗑'}
+                    {deleting === p.id ? '…' : '🗑'}
                   </button>
                 </div>
               </div>

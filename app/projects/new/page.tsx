@@ -33,6 +33,14 @@ const templates: Record<string, { name: string; description: string }[]> = {
   custom: [],
 }
 
+const templateOptions = [
+  { key: 'logo_design', label: 'Logo Design', hint: '4 milestones' },
+  { key: 'website', label: 'Website', hint: '5 milestones' },
+  { key: 'social_media', label: 'Social Media', hint: '4 milestones' },
+  { key: 'uiux', label: 'UI/UX Project', hint: '5 milestones' },
+  { key: 'custom', label: 'Custom', hint: 'Start blank' },
+]
+
 export default function NewProjectPage() {
   const [clients, setClients] = useState<any[]>([])
   const [form, setForm] = useState({ name: '', client_id: '', template_type: '' })
@@ -157,63 +165,81 @@ export default function NewProjectPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b px-6 py-4">
-        <h1 className="text-xl font-bold cursor-pointer" onClick={() => router.push('/dashboard')}>TokenPay</h1>
-      </nav>
-      <div className="max-w-2xl mx-auto p-6 space-y-6">
-        <h2 className="text-2xl font-bold">New Project</h2>
+    <main className="relative min-h-screen bg-black overflow-hidden">
+      <div className="aurora-corner" />
 
-        <div className="bg-white rounded-xl border p-6 space-y-4">
-          <div>
-            <label className="text-sm font-medium text-gray-700">Project Name</label>
+      <nav className="relative z-10 border-b border-white/10 px-6 py-4 sticky top-0 bg-black/70 backdrop-blur-xl">
+        <div className="max-w-2xl mx-auto flex items-center gap-3">
+          <button
+            onClick={() => router.push('/dashboard')}
+            className="text-sm text-white/50 hover:text-white transition-colors"
+          >
+            ← Dashboard
+          </button>
+        </div>
+      </nav>
+
+      <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 space-y-6">
+        <div className="fade-up space-y-1">
+          <h1 className="font-display text-2xl font-semibold tracking-tight text-white/90">New project</h1>
+          <p className="text-sm text-white/40">Set up milestones and we'll handle the invoicing.</p>
+        </div>
+
+        <div className="fade-up-1 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 space-y-5">
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-white/40 uppercase tracking-wide">
+              Project name
+            </label>
             <input
               type="text"
               placeholder="Logo design for ABC Corp"
               value={form.name}
               onChange={e => setForm({ ...form, name: e.target.value })}
-              className="mt-1 w-full border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
+              className="w-full border border-white/10 rounded-lg px-3.5 py-2.5 text-sm text-white bg-white/5 placeholder:text-white/25 outline-none transition-shadow focus:ring-2 focus:ring-accent/30 focus:border-accent"
             />
           </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">Client</label>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-medium text-white/40 uppercase tracking-wide">
+              Client
+            </label>
             <select
               value={form.client_id}
               onChange={e => handleClientSelect(e.target.value)}
-              className="mt-1 w-full border rounded-lg px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
+              className="w-full border border-white/10 rounded-lg px-3.5 py-2.5 text-sm text-white outline-none transition-shadow focus:ring-2 focus:ring-accent/30 focus:border-accent bg-white/5"
             >
-              <option value="">Select client</option>
-              {clients.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              <option value="__new__">+ Add new client</option>
+              <option value="" className="bg-black">Select client</option>
+              {clients.map(c => <option key={c.id} value={c.id} className="bg-black">{c.name}</option>)}
+              <option value="__new__" className="bg-black">+ Add new client</option>
             </select>
 
             {showNewClient && (
-              <div className="mt-3 border rounded-lg p-4 space-y-2 bg-gray-50">
+              <div className="mt-3 border border-white/10 rounded-xl p-4 space-y-2.5 bg-white/[0.02]">
                 <input
                   type="text"
                   placeholder="Client name"
                   value={newClient.name}
                   onChange={e => setNewClient({ ...newClient, name: e.target.value })}
-                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
+                  className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm outline-none bg-white/5 text-white placeholder:text-white/25 focus:ring-2 focus:ring-accent/30 focus:border-accent"
                 />
                 <input
                   type="email"
                   placeholder="Client email"
                   value={newClient.email}
                   onChange={e => setNewClient({ ...newClient, email: e.target.value })}
-                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
+                  className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm outline-none bg-white/5 text-white placeholder:text-white/25 focus:ring-2 focus:ring-accent/30 focus:border-accent"
                 />
-                <div className="flex gap-2">
+                <div className="flex gap-2 pt-1">
                   <button
                     onClick={saveNewClient}
                     disabled={savingClient || !newClient.name || !newClient.email}
-                    className="bg-black text-white px-4 py-1.5 rounded-lg text-xs font-medium disabled:opacity-40"
+                    className="bg-white text-black px-4 py-1.5 rounded-lg text-xs font-medium hover:bg-white/90 disabled:opacity-40 transition-colors"
                   >
-                    {savingClient ? 'Saving...' : 'Save Client'}
+                    {savingClient ? 'Saving…' : 'Save client'}
                   </button>
                   <button
                     onClick={() => { setShowNewClient(false); setNewClient({ name: '', email: '' }) }}
-                    className="border px-4 py-1.5 rounded-lg text-xs font-medium"
+                    className="border border-white/10 px-4 py-1.5 rounded-lg text-xs font-medium text-white/50 hover:text-white hover:border-white/20 transition-colors"
                   >
                     Cancel
                   </button>
@@ -223,76 +249,103 @@ export default function NewProjectPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-xl border p-6 space-y-3">
-          <label className="text-sm font-medium text-gray-700">Pick a template</label>
-          <div className="grid grid-cols-2 gap-3">
-            {[
-              { key: 'logo_design', label: '🎨 Logo Design' },
-              { key: 'website', label: '🌐 Website' },
-              { key: 'social_media', label: '📱 Social Media' },
-              { key: 'uiux', label: '✏️ UI/UX Project' },
-              { key: 'custom', label: '⚙️ Custom' },
-            ].map(t => (
-              <button
-                key={t.key}
-                onClick={() => selectTemplate(t.key)}
-                className={`p-3 rounded-lg border text-sm font-medium text-left transition-all ${form.template_type === t.key ? 'border-black bg-black text-white' : 'hover:border-gray-400'}`}
-              >
-                {t.label}
-              </button>
-            ))}
+        <div className="fade-up-2 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 space-y-3">
+          <label className="text-xs font-medium text-white/40 uppercase tracking-wide">
+            Pick a template
+          </label>
+          <div className="grid grid-cols-2 gap-2.5">
+            {templateOptions.map(t => {
+              const selected = form.template_type === t.key
+              return (
+                <button
+                  key={t.key}
+                  onClick={() => selectTemplate(t.key)}
+                  className={`rounded-xl border p-3.5 text-left transition-all ${
+                    selected
+                      ? 'border-accent bg-accent/[0.08] ring-1 ring-accent/30'
+                      : 'border-white/10 hover:border-white/20'
+                  }`}
+                >
+                  <p className={`text-sm font-medium ${selected ? 'text-accent' : 'text-white'}`}>
+                    {t.label}
+                  </p>
+                  <p className="text-xs text-white/40 mt-0.5">{t.hint}</p>
+                </button>
+              )
+            })}
           </div>
         </div>
 
         {form.template_type && (
-          <div className="bg-white rounded-xl border p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <label className="text-sm font-medium text-gray-700">Milestones (Tokens)</label>
-              <span className="text-sm font-bold">Total: ₹{total.toLocaleString()}</span>
+          <div className="fade-up-3 rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-6 space-y-4">
+            <div className="flex justify-between items-baseline">
+              <label className="text-xs font-medium text-white/40 uppercase tracking-wide">
+                Milestones
+              </label>
+              <span className="font-mono text-sm font-medium text-white tabular-nums">
+                ₹{total.toLocaleString('en-IN')}
+              </span>
             </div>
-            {tokens.map((token, i) => (
-              <div key={i} className="border rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold text-gray-400">TOKEN {i + 1}</span>
-                  <button onClick={() => removeToken(i)} className="text-xs text-red-500 hover:underline">Remove</button>
+
+            <div className="space-y-3">
+              {tokens.map((token, i) => (
+                <div key={i} className="border border-white/10 rounded-xl p-4 space-y-2.5">
+                  <div className="flex justify-between items-center">
+                    <span className="font-mono text-xs font-medium text-white/40">
+                      TOKEN {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <button
+                      onClick={() => removeToken(i)}
+                      className="text-xs text-overdue hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Milestone name"
+                    value={token.name}
+                    onChange={e => updateToken(i, 'name', e.target.value)}
+                    className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm bg-white/5 text-white placeholder:text-white/25 outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description (optional)"
+                    value={token.description}
+                    onChange={e => updateToken(i, 'description', e.target.value)}
+                    className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm bg-white/5 text-white placeholder:text-white/25 outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                  />
+                  <input
+                    type="number"
+                    placeholder="Value in ₹"
+                    value={token.value_inr}
+                    onChange={e => updateToken(i, 'value_inr', e.target.value)}
+                    className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm font-mono bg-white/5 text-white placeholder:text-white/25 outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Milestone name"
-                  value={token.name}
-                  onChange={e => updateToken(i, 'name', e.target.value)}
-                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
-                />
-                <input
-                  type="text"
-                  placeholder="Description (optional)"
-                  value={token.description}
-                  onChange={e => updateToken(i, 'description', e.target.value)}
-                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
-                />
-                <input
-                  type="number"
-                  placeholder="Value in ₹"
-                  value={token.value_inr}
-                  onChange={e => updateToken(i, 'value_inr', e.target.value)}
-                  className="w-full border rounded px-3 py-1.5 text-sm outline-none focus:ring-2 focus:ring-black"
-                />
-              </div>
-            ))}
-            <button onClick={addToken} className="w-full border-2 border-dashed rounded-lg py-2 text-sm text-gray-500 hover:border-gray-400">
+              ))}
+            </div>
+
+            <button
+              onClick={addToken}
+              className="w-full border border-dashed border-white/15 rounded-xl py-2.5 text-sm text-white/40 hover:border-white/25 hover:text-white transition-colors"
+            >
               + Add milestone
             </button>
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+        {error && (
+          <p className="text-overdue text-sm text-center">{error}</p>
+        )}
+
         {tokens.length > 0 && (
           <button
             onClick={handleSubmit}
             disabled={loading || !form.name || !form.client_id}
-            className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50"
+            className="shine btn-press w-full bg-white text-black py-3 rounded-xl font-medium text-sm hover:bg-white/90 disabled:opacity-40 transition-colors"
           >
-            {loading ? 'Creating...' : 'Create Project'}
+            {loading ? 'Creating…' : 'Create project'}
           </button>
         )}
       </div>

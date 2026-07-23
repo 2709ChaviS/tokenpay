@@ -59,67 +59,80 @@ export default function ClientsPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
-      <nav className="bg-white border-b border-gray-100 px-8 py-4 flex justify-between items-center sticky top-0 z-10">
-        <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/dashboard')}>
-          <div className="w-7 h-7 bg-black rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-bold">T</span>
+    <main className="relative min-h-screen bg-black overflow-hidden">
+      <div className="aurora-corner" />
+
+      <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
+          <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
+            <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
+              <span className="text-black text-xs font-mono font-bold">T</span>
+            </div>
+            <span className="text-base font-semibold tracking-tight text-white">TokenPay</span>
           </div>
-          <span className="text-lg font-bold tracking-tight">TokenPay</span>
-        </div>
-        <div className="flex items-center gap-6">
-          <button onClick={() => router.push('/projects')} className="text-sm text-gray-500 hover:text-black transition-colors">Projects</button>
-          <button onClick={() => router.push('/clients')} className="text-sm font-medium text-black">Clients</button>
-          <button onClick={() => router.push('/invoices')} className="text-sm text-gray-500 hover:text-black transition-colors">Invoices</button>
+          <div className="flex items-center gap-7">
+            <button onClick={() => router.push('/projects')} className="text-sm text-white/50 hover:text-white font-medium transition-colors">Projects</button>
+            <button onClick={() => router.push('/clients')} className="text-sm font-medium text-white">Clients</button>
+            <button onClick={() => router.push('/invoices')} className="text-sm text-white/50 hover:text-white font-medium transition-colors">Invoices</button>
+          </div>
         </div>
       </nav>
 
-      <div className="max-w-3xl mx-auto px-8 py-10 space-y-6">
-        <div className="flex justify-between items-center">
+      <div className="relative z-10 max-w-3xl mx-auto px-8 py-10 space-y-6">
+        <div className="fade-up flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
-            <p className="text-gray-400 text-sm mt-1">{clients.length} client{clients.length !== 1 ? 's' : ''} total</p>
+            <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Clients</h1>
+            <p className="text-white/40 text-sm mt-1">{clients.length} client{clients.length !== 1 ? 's' : ''} total</p>
           </div>
           <button
             onClick={() => router.push('/clients/new')}
-            className="bg-black text-white px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
+            className="shine btn-press bg-white text-black px-5 py-2.5 rounded-xl text-sm font-medium hover:bg-white/90 transition-colors"
           >
             + Add Client
           </button>
         </div>
 
         {clients.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-dashed border-gray-200 p-16 text-center">
-            <p className="text-3xl mb-3">👤</p>
-            <p className="text-gray-400 text-sm">No clients yet.</p>
-            <button onClick={() => router.push('/clients/new')} className="mt-4 text-sm font-medium underline underline-offset-4">
+          <div className="fade-up-1 rounded-2xl border border-dashed border-white/15 p-16 text-center">
+            <p className="text-white/40 text-sm">No clients yet.</p>
+            <button
+              onClick={() => router.push('/clients/new')}
+              className="mt-4 text-sm font-medium text-accent hover:underline underline-offset-4"
+            >
               Add your first client
             </button>
           </div>
         ) : (
           <div className="space-y-2">
-            {clients.map(c => (
-              <div key={c.id} className="bg-white rounded-2xl border border-gray-100 p-5 flex justify-between items-center hover:border-gray-300 hover:shadow-sm transition-all group">
+            {clients.map((c) => (
+              <div
+                key={c.id}
+                className="fade-up card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group"
+              >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-100 rounded-xl flex items-center justify-center">
-                    <span className="text-sm font-bold text-gray-500">{c.name?.slice(0, 2).toUpperCase()}</span>
+                  <div className="w-9 h-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
+                    <span className="font-mono text-xs font-medium text-white/60">
+                      {c.name?.slice(0, 2).toUpperCase()}
+                    </span>
                   </div>
                   <div>
-                    <p className="font-medium text-sm">{c.name}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{c.email} {c.company ? '· ' + c.company : ''}</p>
+                    <p className="font-medium text-sm text-white">{c.name}</p>
+                    <p className="text-xs text-white/40 mt-0.5">{c.email} {c.company ? '· ' + c.company : ''}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   {c.gst_number && (
-                    <span className="text-xs bg-gray-50 text-gray-400 px-3 py-1 rounded-full border border-gray-100">GST: {c.gst_number}</span>
+                    <span className="font-mono text-xs text-white/40 px-2.5 py-1 rounded-full border border-white/10">
+                      GST: {c.gst_number}
+                    </span>
                   )}
                   <button
                     onClick={() => deleteClient(c.id)}
                     disabled={deleting === c.id}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600 hover:bg-red-50 w-8 h-8 rounded-lg flex items-center justify-center border border-transparent hover:border-red-100"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity btn-press text-overdue hover:bg-overdue/10 w-8 h-8 rounded-lg flex items-center justify-center border border-transparent hover:border-overdue/20"
                     title="Delete client"
                   >
-                    {deleting === c.id ? '...' : '🗑'}
+                    {deleting === c.id ? '…' : '🗑'}
                   </button>
                 </div>
               </div>
