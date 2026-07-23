@@ -53,9 +53,9 @@ export default function LoginPage() {
 
       <div className="relative z-10 w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">
-          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-white text-black font-mono text-lg font-semibold">
-            T
-          </div>
+         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-black border border-white/15 text-white font-mono text-lg font-semibold">
+  T
+</div>
           <h1 className="font-display text-2xl font-semibold tracking-tight text-white/90">
             TokenPay
           </h1>
