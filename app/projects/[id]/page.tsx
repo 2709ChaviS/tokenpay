@@ -30,22 +30,29 @@ export default function ProjectPage() {
     load()
   }, [])
 
-  async function markComplete(tokenId: string) {
-    const supabase = createClient()
-    await supabase.from('tokens').update({
-      status: 'submitted',
-      freelancer_approved_at: new Date().toISOString(),
-      auto_approve_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    }).eq('id', tokenId)
-    const magicToken = crypto.randomUUID()
-    await supabase.from('client_sessions').insert({
-      token_id: tokenId,
-      magic_token: magicToken,
-      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-    })
-    setApprovalLink(window.location.origin + '/approve/' + magicToken)
-    setTokens(tokens.map(t => t.id === tokenId ? { ...t, status: 'submitted' } : t))
+ async function markComplete(tokenId: string) {
+  const supabase = createClient()
+  await supabase.from('tokens').update({
+    status: 'submitted',
+    freelancer_approved_at: new Date().toISOString(),
+    auto_approve_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  }).eq('id', tokenId)
+
+  const res = await fetch('/api/create-approval-link', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ tokenId })
+  })
+  const data = await res.json()
+
+  if (data.error) {
+    alert('Could not create approval link: ' + data.error)
+    return
   }
+
+  setApprovalLink(window.location.origin + '/approve/' + data.magicToken)
+  setTokens(tokens.map(t => t.id === tokenId ? { ...t, status: 'submitted' } : t))
+}
 
   async function copyLink() {
     if (!approvalLink) return
