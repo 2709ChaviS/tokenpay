@@ -1,73 +1,63 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
 import { useParams } from 'next/navigation'
 
 export default function ApprovePage() {
-  const [session, setSession] = useState<any>(null)
   const [token, setToken] = useState<any>(null)
   const [project, setProject] = useState<any>(null)
-  const [status, setStatus] = useState<'loading' | 'pending' | 'approved' | 'disputed' | 'already_done'>('loading')
+  const [status, setStatus] = useState<'loading' | 'pending' | 'approved' | 'disputed' | 'already_done' | 'error'>('loading')
   const [disputeReason, setDisputeReason] = useState('')
   const [showDispute, setShowDispute] = useState(false)
   const params = useParams()
 
   useEffect(() => {
-    const supabase = createClient()
-    supabase.from('client_sessions')
-      .select('*')
-      .eq('magic_token', params.magic_token)
-      .single()
-      .then(async ({ data: sess }) => {
-        if (!sess) { setStatus('pending'); return }
-        setSession(sess)
-
-        const { data: tok } = await supabase
-          .from('tokens').select('*').eq('id', sess.token_id).single()
-        setToken(tok)
-
-        const { data: proj } = await supabase
-          .from('projects').select('*').eq('id', tok?.project_id).single()
-        setProject(proj)
-
-        if (tok?.status === 'approved') setStatus('already_done')
+    fetch('/api/approve/' + params.magic_token)
+      .then(res => res.json())
+      .then(data => {
+        if (data.error) { setStatus('error'); return }
+        setToken(data.token)
+        setProject(data.project)
+        if (data.token?.status === 'approved') setStatus('already_done')
         else setStatus('pending')
       })
+      .catch(() => setStatus('error'))
   }, [])
 
   async function handleApprove() {
-    const supabase = createClient()
-    await supabase.from('tokens').update({
-      status: 'approved',
-      client_approved_at: new Date().toISOString()
-    }).eq('id', token.id)
-
-    await supabase.from('invoice_items').insert({
-      token_id: token.id,
-      project_id: token.project_id,
-      freelancer_id: project.freelancer_id,
-      client_id: project.client_id,
-      amount_inr: token.value_inr,
-      gst_amount: token.value_inr * 0.18,
-      final_amount: token.value_inr * 1.18,
+    const res = await fetch('/api/approve/' + params.magic_token, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'approve' })
     })
-
-    await supabase.from('client_sessions').update({ used_at: new Date().toISOString() }).eq('id', session.id)
+    const data = await res.json()
+    if (data.error) { setStatus('error'); return }
     setStatus('approved')
   }
 
   async function handleDispute() {
-    const supabase = createClient()
-    await supabase.from('tokens').update({
-      status: 'disputed',
-      dispute_reason: disputeReason
-    }).eq('id', token.id)
+    const res = await fetch('/api/approve/' + params.magic_token, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'dispute', disputeReason })
+    })
+    const data = await res.json()
+    if (data.error) { setStatus('error'); return }
     setStatus('disputed')
   }
 
   if (status === 'loading') return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50">
       <p className="text-gray-500">Loading...</p>
+    </main>
+  )
+
+  if (status === 'error') return (
+    <main className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="text-center space-y-4 p-8">
+        <div className="text-5xl">⚠️</div>
+        <h2 className="text-2xl font-bold">Link not valid</h2>
+        <p className="text-gray-500">This link may have expired or already been used.</p>
+      </div>
     </main>
   )
 
