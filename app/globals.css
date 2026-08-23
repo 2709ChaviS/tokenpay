@@ -10,9 +10,9 @@
   --color-overdue: #DC2626;
   --color-pending: #D97706;
 
-  --font-sans: var(--font-body);
-  --font-display: var(--font-display);
-  --font-mono: var(--font-mono);
+--font-sans: var(--font-body);
+--font-display: var(--font-body);
+--font-mono: var(--font-body);
 }
 
 * { box-sizing: border-box; }

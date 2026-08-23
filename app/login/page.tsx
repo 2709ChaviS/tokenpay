@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { HeroBackground } from '@/components/hero-background';
 
 const DEMO_EMAIL = 'demo@tokenpay.app';
 const DEMO_PASSWORD = 'Demo2026Pass';
@@ -68,7 +69,7 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-black px-4 overflow-hidden">
-      <div className="aurora-bg" />
+      <HeroBackground />
 
       <div className="relative z-10 w-full max-w-sm space-y-8">
         <div className="text-center space-y-2">

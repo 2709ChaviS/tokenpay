@@ -14,8 +14,6 @@ const geistMono = Geist_Mono({
 });
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-body' });
-const interTight = Inter_Tight({ subsets: ['latin'], variable: '--font-display' });
-const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono' });
 
 export const metadata: Metadata = {
   title: "TokenPay",
@@ -30,7 +28,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${inter.variable} ${interTight.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
