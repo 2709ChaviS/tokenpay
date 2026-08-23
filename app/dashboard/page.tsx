@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
+import { StaggerGroup, StaggerCard } from '@/components/stagger-in'
 
 export default function Dashboard() {
   const [user, setUser] = useState<any>(null)
@@ -127,9 +128,9 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="grid grid-cols-3 gap-5">
-          <div
-            className="fade-up-1 card-lift rounded-2xl p-6 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer"
+        <StaggerGroup className="grid grid-cols-3 gap-5">
+          <StaggerCard
+            className="card-lift rounded-2xl p-6 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer"
             onClick={() => router.push('/projects')}
           >
             <span className="text-xs font-medium text-white/30 tracking-widest uppercase">Projects</span>
@@ -139,9 +140,9 @@ export default function Dashboard() {
               <span className="text-xs text-paid font-medium">● Live</span>
               <span className="text-xs text-white/40">and running</span>
             </div>
-          </div>
+          </StaggerCard>
 
-          <div className="fade-up-2 card-lift rounded-2xl p-6 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer">
+          <StaggerCard className="card-lift rounded-2xl p-6 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer">
             <span className="text-xs font-medium text-white/30 tracking-widest uppercase">Pending</span>
             <p className="font-mono text-5xl font-semibold tracking-tight text-white mt-5 mb-1 tabular-nums">{stats.pending}</p>
             <p className="text-sm text-white/40">Awaiting client approval</p>
@@ -151,10 +152,10 @@ export default function Dashboard() {
                 {stats.pending > 0 ? `${stats.pending} milestone${stats.pending > 1 ? 's' : ''} waiting` : 'All caught up'}
               </span>
             </div>
-          </div>
+          </StaggerCard>
 
-          <div
-            className="fade-up-3 card-lift rounded-2xl p-6 border border-accent/20 bg-accent/[0.06] backdrop-blur-sm cursor-pointer"
+          <StaggerCard
+            className="card-lift rounded-2xl p-6 border border-accent/20 bg-accent/[0.06] backdrop-blur-sm cursor-pointer"
             onClick={() => router.push('/invoices')}
           >
             <span className="text-xs font-medium text-white/30 tracking-widest uppercase">Unbilled</span>
@@ -165,8 +166,8 @@ export default function Dashboard() {
             <div className="mt-4 pt-4 border-t border-white/10">
               <span className="text-xs text-accent font-medium">Generate invoice →</span>
             </div>
-          </div>
-        </div>
+          </StaggerCard>
+        </StaggerGroup>
 
         <div className="grid grid-cols-3 gap-3">
           <button
@@ -189,7 +190,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <div className="fade-up-4 space-y-4">
+        <div className="space-y-4">
           <div className="flex justify-between items-center">
             <h2 className="text-lg font-semibold text-white/90">Recent Projects</h2>
             <button
@@ -212,9 +213,9 @@ export default function Dashboard() {
               </button>
             </div>
           ) : (
-            <div className="space-y-2">
+            <StaggerGroup className="space-y-2">
               {projects.map((p) => (
-                <div
+                <StaggerCard
                   key={p.id}
                   onClick={() => router.push(`/projects/${p.id}`)}
                   className="card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer flex justify-between items-center hover:border-white/20 transition-colors group"
@@ -230,21 +231,21 @@ export default function Dashboard() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-  p.status === 'completed'
-    ? 'text-paid border-paid/30 bg-paid/10'
-    : p.status === 'active'
-    ? 'text-pending border-pending/30 bg-pending/10'
-    : 'text-white/50 border-white/10'
-}`}>
-  {p.status}
-</span>
+                      p.status === 'completed'
+                        ? 'text-paid border-paid/30 bg-paid/10'
+                        : p.status === 'active'
+                        ? 'text-pending border-pending/30 bg-pending/10'
+                        : 'text-white/50 border-white/10'
+                    }`}>
+                      {p.status}
+                    </span>
                     <span className="text-white/20 group-hover:text-white group-hover:translate-x-1 transition-all inline-block">
                       →
                     </span>
                   </div>
-                </div>
+                </StaggerCard>
               ))}
-            </div>
+            </StaggerGroup>
           )}
         </div>
       </div>
