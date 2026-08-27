@@ -46,9 +46,11 @@ export default function Home() {
           variants={heroFade}
           className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white/60 font-medium"
         >
-          <span className="w-1.5 h-1.5 bg-green-400 rounded-full pulse-dot"></span>
+          <span className=""></span>
           Built for Indian freelancers
         </motion.div>
+          
+        
 
         <motion.h1
           custom={1}
