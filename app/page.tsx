@@ -55,7 +55,7 @@ export default function Home() {
           initial="hidden"
           animate="show"
           variants={heroFade}
-          className="font-display text-6xl font-semibold tracking-tight leading-tight text-white/90"
+          className="font-display text-4xl sm:text-6xl font-semibold tracking-tight leading-tight text-white/90"
         >
           Invoicing without<br />
           <span className="text-white/30">manual entries</span>
@@ -76,7 +76,7 @@ export default function Home() {
           initial="hidden"
           animate="show"
           variants={heroFade}
-          className="flex gap-3 justify-center pt-4"
+          className="flex flex-col sm:flex-row gap-3 justify-center pt-4"
         >
           <Link
             href="/login"
@@ -117,7 +117,7 @@ export default function Home() {
 
       <div className="relative z-10 max-w-4xl mx-auto px-8 py-16" id="how-it-works">
         <h2 className="text-center text-2xl font-semibold mb-12 text-white">How it works</h2>
-        <StaggerGroup className="grid grid-cols-3 gap-6">
+        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {[
             { step: '01', title: 'Create a project', desc: 'Pick a template - Logo Design, Website, UI/UX. Tokens are pre-filled.' },
             { step: '02', title: 'Mark milestones done', desc: 'Click Mark Complete. Client gets a one-click approval link. No signup needed.' },

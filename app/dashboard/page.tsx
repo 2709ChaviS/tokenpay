@@ -78,14 +78,14 @@ export default function Dashboard() {
       <div className="aurora-corner" />
 
       <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-black text-xs font-mono font-bold">T</span>
             </div>
             <span className="text-base font-semibold tracking-tight text-white">TokenPay</span>
           </div>
-          <div className="flex items-center gap-7">
+          <div className="flex items-center gap-3 sm:gap-7 overflow-x-auto">
             {[
               { label: 'Projects', path: '/projects' },
               { label: 'Clients', path: '/clients' },
@@ -110,12 +110,12 @@ export default function Dashboard() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-6xl mx-auto px-8 py-10 space-y-8">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-6 sm:space-y-8">
 
-        <div className="fade-up rounded-2xl p-8 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center">
+        <div className="fade-up rounded-2xl p-5 sm:p-8 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <p className="text-white/40 text-sm font-medium mb-1">Welcome back</p>
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-white/90 capitalize">
+            <h1 className="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white/90 capitalize">
               {firstName.charAt(0).toUpperCase() + firstName.slice(1).toLowerCase()}
             </h1>
             <p className="text-white/40 text-sm mt-2">Here's what's happening with your projects today.</p>
@@ -128,13 +128,13 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <StaggerGroup className="grid grid-cols-3 gap-5">
+        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-5">
           <StaggerCard
             className="card-lift rounded-2xl p-6 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer"
             onClick={() => router.push('/projects')}
           >
             <span className="text-xs font-medium text-white/30 tracking-widest uppercase">Projects</span>
-            <p className="font-mono text-5xl font-semibold tracking-tight text-white mt-5 mb-1 tabular-nums">{stats.active}</p>
+            <p className="font-mono text-3xl sm:text-5xl font-semibold tracking-tight text-white mt-3 sm:mt-5 mb-1 tabular-nums">{stats.active}</p>
             <p className="text-sm text-white/40">Active projects</p>
             <div className="mt-4 pt-4 border-t border-white/10 flex items-center gap-1.5">
               <span className="text-xs text-paid font-medium">● Live</span>
@@ -169,7 +169,7 @@ export default function Dashboard() {
           </StaggerCard>
         </StaggerGroup>
 
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <button
             onClick={() => router.push('/projects/new')}
             className="shine btn-press rounded-xl py-3.5 text-sm font-medium text-white border border-white/10 bg-white/[0.03] hover:border-white/20 transition-colors"
@@ -218,7 +218,7 @@ export default function Dashboard() {
                 <StaggerCard
                   key={p.id}
                   onClick={() => router.push(`/projects/${p.id}`)}
-                  className="card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer flex justify-between items-center hover:border-white/20 transition-colors group"
+                  className="card-lift rounded-2xl px-4 sm:px-5 py-3 sm:py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm cursor-pointer flex justify-between items-center hover:border-white/20 transition-colors group gap-2"
                 >
                   <div className="flex items-center gap-4">
                     <span className="font-mono text-xs font-medium text-white/40 w-14 shrink-0">
