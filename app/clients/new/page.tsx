@@ -55,7 +55,7 @@ export default function NewClientPage() {
     <main className="relative min-h-screen bg-black overflow-hidden">
       <div className="aurora-corner" />
 
-      <nav className="relative z-10 border-b border-white/10 px-8 py-4 flex justify-between items-center sticky top-0 bg-black/70 backdrop-blur-xl">
+      <nav className="relative z-10 border-b border-white/10 px-4 sm:px-8 py-4 flex justify-between items-center sticky top-0 bg-black/70 backdrop-blur-xl">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/dashboard')}>
           <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
             <span className="text-black text-xs font-mono font-bold">T</span>
@@ -67,7 +67,7 @@ export default function NewClientPage() {
         </button>
       </nav>
 
-      <div className="relative z-10 max-w-lg mx-auto px-8 py-10 space-y-6">
+      <div className="relative z-10 max-w-lg mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-6">
         <div className="fade-up">
           <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Add Client</h1>
           <p className="text-white/40 text-sm mt-1">Client info is saved once and reused across all invoices.</p>

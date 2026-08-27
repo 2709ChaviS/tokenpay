@@ -179,7 +179,7 @@ export default function NewProjectPage() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-6 py-12 space-y-6">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-12 space-y-6">
         <div className="fade-up space-y-1">
           <h1 className="font-display text-2xl font-semibold tracking-tight text-white/90">New project</h1>
           <p className="text-sm text-white/40">Set up milestones and we'll handle the invoicing.</p>
@@ -253,7 +253,7 @@ export default function NewProjectPage() {
           <label className="text-xs font-medium text-white/40 uppercase tracking-wide">
             Pick a template
           </label>
-          <div className="grid grid-cols-2 gap-2.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {templateOptions.map(t => {
               const selected = form.template_type === t.key
               return (

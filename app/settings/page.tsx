@@ -49,7 +49,7 @@ export default function SettingsPage() {
       <div className="aurora-corner" />
 
       <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-black text-xs font-mono font-bold">T</span>
@@ -77,10 +77,10 @@ export default function SettingsPage() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-2xl mx-auto px-8 py-10 space-y-6">
+      <div className="relative z-10 max-w-2xl mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-6">
         <div className="fade-up">
           <p className="text-white/40 text-sm mb-1">Account</p>
-          <h1 className="font-display text-4xl font-semibold tracking-tight text-white/90">Settings</h1>
+          <h1 className="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white/90">Settings</h1>
         </div>
 
         {/* Profile */}
@@ -139,7 +139,7 @@ export default function SettingsPage() {
         {/* Danger zone */}
         <div className="fade-up-3 rounded-2xl border border-overdue/20 bg-overdue/[0.03] backdrop-blur-sm p-6 space-y-3">
           <h2 className="font-semibold text-xs text-overdue uppercase tracking-widest">Danger Zone</h2>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
             <div>
               <p className="text-sm font-medium text-white">Sign out</p>
               <p className="text-xs text-white/40">Sign out of your TokenPay account</p>

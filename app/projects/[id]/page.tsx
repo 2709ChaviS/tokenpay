@@ -111,7 +111,7 @@ export default function ProjectPage() {
       <div className="aurora-corner" />
 
       <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
             <div className="w-8 h-8 bg-black border border-white/15 rounded-lg flex items-center justify-center">
               <span className="text-white text-xs font-mono font-bold">T</span>
@@ -132,16 +132,16 @@ export default function ProjectPage() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-3xl mx-auto px-8 py-10 space-y-6">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-6">
 
         <div className="fade-up rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-7">
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="flex items-center gap-4">
               <span className="font-mono text-xs font-medium text-white/40 border border-white/10 rounded-lg px-2.5 py-1.5">
                 {templateLabel[project.template_type] || 'Custom'}
               </span>
               <div>
-                <h1 className="font-display text-2xl font-semibold tracking-tight text-white/90">{project.name}</h1>
+                <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight text-white/90">{project.name}</h1>
                 <p className="text-white/40 text-sm mt-0.5">
                   Client: <span className="text-white/70 font-medium">{client?.name}</span>
                   <span className="text-white/20 mx-1.5">·</span>
@@ -170,7 +170,7 @@ export default function ProjectPage() {
           </div>
         </div>
 
-        <div className="fade-up-1 grid grid-cols-3 gap-4">
+        <div className="fade-up-1 grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
           <div className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 text-center">
             <p className="font-mono text-2xl font-semibold text-white tabular-nums">₹{total.toLocaleString('en-IN')}</p>
             <p className="text-xs text-white/40 mt-0.5">Project Value</p>
@@ -192,11 +192,11 @@ export default function ProjectPage() {
               <p className="font-semibold text-sm text-white">Share approval link with your client</p>
             </div>
             <p className="text-xs text-white/40">Client clicks this link, no login needed. They can approve or raise an issue.</p>
-            <div className="flex gap-2">
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white/50 truncate font-mono">
-                {approvalLink}
-              </div>
-              <button onClick={copyLink} className="shine btn-press bg-white text-black px-4 py-2.5 rounded-xl text-xs font-semibold flex-shrink-0 hover:bg-white/90 transition-colors">
+            <div className="flex flex-col sm:flex-row gap-2">
+  <div className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-white/50 truncate font-mono">
+    {approvalLink}
+  </div>
+  <button onClick={copyLink} className="shine btn-press bg-white text-black px-4 py-2.5 rounded-xl text-xs font-semibold flex-shrink-0 hover:bg-white/90 transition-colors">
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
@@ -219,7 +219,7 @@ export default function ProjectPage() {
             return (
               <div
                 key={token.id}
-                className="card-lift rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-5 flex justify-between items-center hover:border-white/20 transition-colors group"
+                className="card-lift rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-4 sm:p-5 flex flex-col sm:flex-row justify-between sm:items-center gap-3 hover:border-white/20 transition-colors group"
               >
                 <div className="flex items-center gap-4">
                   <div className={
