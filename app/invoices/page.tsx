@@ -135,7 +135,7 @@ export default function InvoicesPage() {
 
       <div className="relative z-10 max-w-3xl mx-auto px-8 py-10 space-y-8">
         <div className="fade-up">
-          <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Invoices</h1>
+          <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white/90">Invoices</h1>
           <p className="text-white/40 text-sm mt-1">Auto-generated from approved milestones</p>
         </div>
 
@@ -155,7 +155,7 @@ export default function InvoicesPage() {
               </div>
               <div className="px-6 divide-y divide-white/5">
                 {clientItems.map((item, i) => (
-                  <div key={i} className="py-4 flex justify-between items-center">
+                  <div key={i} className="py-4 flex flex-col sm:flex-row justify-between sm:items-center gap-1">
                     <div>
                       <p className="font-medium text-sm text-white">{item.tokens?.name}</p>
                       <p className="text-xs text-white/40 mt-0.5">{item.projects?.name} · {item.clients?.name}</p>
@@ -205,7 +205,7 @@ export default function InvoicesPage() {
             {invoices.map(inv => {
               const clientName = inv.items?.[0]?.clients?.name || 'Client'
               return (
-                <div key={inv.id} className="card-lift rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-5 flex items-center gap-3 hover:border-white/20 transition-colors">
+                <div key={inv.id} className="card-lift rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-3 sm:p-5 flex items-center gap-2 sm:gap-3 hover:border-white/20 transition-colors overflow-x-auto">
                   <div className="flex-1">
                     <InvoiceRow
                       tokenId={inv.invoice_number}

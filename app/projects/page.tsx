@@ -78,7 +78,7 @@ export default function ProjectsPage() {
       <div className="aurora-corner" />
 
       <nav className="relative z-10 border-b border-white/10 sticky top-0 bg-black/70 backdrop-blur-xl">
-        <div className="max-w-6xl mx-auto px-8 py-4 flex justify-between items-center">
+        <div className="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2.5 cursor-pointer" onClick={() => router.push('/dashboard')}>
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
               <span className="text-black text-xs font-mono font-bold">T</span>
@@ -109,10 +109,10 @@ export default function ProjectsPage() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-8 py-10 space-y-6">
-        <div className="fade-up flex justify-between items-center">
+      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-6">
+  <div className="fade-up flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-white/90">Projects</h1>
+            <h1 className="font-display text-2xl sm:text-4xl font-semibold tracking-tight text-white/90">Projects</h1>
             <p className="text-white/40 text-sm mt-1">{projects.length} project{projects.length !== 1 ? 's' : ''} total</p>
           </div>
           <button
@@ -138,7 +138,7 @@ export default function ProjectsPage() {
             {projects.map((p) => (
               <div
                 key={p.id}
-                className="fade-up card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group"
+                className="fade-up card-lift rounded-2xl px-4 sm:px-5 py-3 sm:py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group gap-2"
               >
                 <div
                   className="flex items-center gap-4 flex-1 cursor-pointer"

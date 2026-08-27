@@ -79,9 +79,9 @@ export default function ClientsPage() {
       </nav>
 
       <div className="relative z-10 max-w-3xl mx-auto px-8 py-10 space-y-6">
-        <div className="fade-up flex justify-between items-center">
+        <div className="fade-up flex flex-col sm:flex-row justify-between sm:items-center gap-3">
           <div>
-            <h1 className="font-display text-3xl font-semibold tracking-tight text-white/90">Clients</h1>
+            <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white/90">Clients</h1>
             <p className="text-white/40 text-sm mt-1">{clients.length} client{clients.length !== 1 ? 's' : ''} total</p>
           </div>
           <button
@@ -107,7 +107,7 @@ export default function ClientsPage() {
             {clients.map((c) => (
               <div
                 key={c.id}
-                className="fade-up card-lift rounded-2xl px-5 py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group"
+                className="fade-up card-lift rounded-2xl px-4 sm:px-5 py-3 sm:py-4 border border-white/10 bg-white/[0.03] backdrop-blur-sm flex justify-between items-center hover:border-white/20 transition-colors group gap-2"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-9 h-9 bg-white/5 border border-white/10 rounded-lg flex items-center justify-center">
