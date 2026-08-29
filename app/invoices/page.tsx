@@ -5,9 +5,9 @@ import { useRouter } from 'next/navigation'
 import { InvoiceDownloadButton } from '@/components/invoice-download-button'
 import { InvoiceRow } from '@/components/invoice-row'
 
-function mapStatus(status: string): 'paid' | 'pending' | 'overdue' {
-  if (status === 'paid') return 'paid'
-  if (status === 'overdue') return 'overdue'
+function mapStatus(invoice: any): 'paid' | 'pending' | 'overdue' {
+  if (invoice.payment_status === 'paid' || invoice.status === 'paid') return 'paid'
+  if (invoice.status === 'overdue') return 'overdue'
   return 'pending'
 }
 
@@ -17,6 +17,7 @@ export default function InvoicesPage() {
   const [user, setUser] = useState<any>(null)
   const [generatingFor, setGeneratingFor] = useState<string | null>(null)
   const [deletingInvoice, setDeletingInvoice] = useState<string | null>(null)
+  const [copiedLink, setCopiedLink] = useState<string | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -115,11 +116,18 @@ export default function InvoicesPage() {
     setDeletingInvoice(null)
   }
 
+  async function copyPayLink(token: string) {
+    const url = window.location.origin + '/pay/' + token
+    await navigator.clipboard.writeText(url)
+    setCopiedLink(token)
+    setTimeout(() => setCopiedLink(null), 2000)
+  }
+
   return (
     <main className="relative min-h-screen bg-black overflow-hidden">
       <div className="aurora-corner" />
 
-      <nav className="relative z-10 border-b border-white/10 px-8 py-4 flex justify-between items-center sticky top-0 bg-black/70 backdrop-blur-xl">
+      <nav className="relative z-10 border-b border-white/10 px-4 sm:px-8 py-4 flex justify-between items-center sticky top-0 bg-black/70 backdrop-blur-xl">
         <div className="flex items-center gap-2 cursor-pointer" onClick={() => router.push('/dashboard')}>
           <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
             <span className="text-black text-xs font-mono font-bold">T</span>
@@ -133,7 +141,7 @@ export default function InvoicesPage() {
         </div>
       </nav>
 
-      <div className="relative z-10 max-w-3xl mx-auto px-8 py-10 space-y-8">
+      <div className="relative z-10 max-w-3xl mx-auto px-4 sm:px-8 py-6 sm:py-10 space-y-8">
         <div className="fade-up">
           <h1 className="font-display text-2xl sm:text-3xl font-semibold tracking-tight text-white/90">Invoices</h1>
           <p className="text-white/40 text-sm mt-1">Auto-generated from approved milestones</p>
@@ -204,21 +212,30 @@ export default function InvoicesPage() {
             <h3 className="font-semibold text-white">Past Invoices</h3>
             {invoices.map(inv => {
               const clientName = inv.items?.[0]?.clients?.name || 'Client'
+              const isPaid = inv.payment_status === 'paid' || inv.status === 'paid'
               return (
                 <div key={inv.id} className="card-lift rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm p-3 sm:p-5 flex items-center gap-2 sm:gap-3 hover:border-white/20 transition-colors overflow-x-auto">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <InvoiceRow
                       tokenId={inv.invoice_number}
                       client={clientName}
                       amount={inv.grand_total || 0}
-                      status={mapStatus(inv.status)}
+                      status={mapStatus(inv)}
                     />
                   </div>
+                  {!isPaid && inv.payment_link_token && (
+                    <button
+                      onClick={() => copyPayLink(inv.payment_link_token)}
+                      className="text-xs font-medium bg-accent/10 text-accent border border-accent/30 px-3 py-1.5 rounded-full hover:bg-accent/20 transition-colors whitespace-nowrap"
+                    >
+                      {copiedLink === inv.payment_link_token ? 'Copied!' : 'Copy Pay Link'}
+                    </button>
+                  )}
                   <InvoiceDownloadButton invoice={inv} />
                   <button
                     onClick={() => deleteInvoice(inv.id)}
                     disabled={deletingInvoice === inv.id}
-                    className="text-xs text-overdue hover:bg-overdue/10 w-7 h-7 rounded-lg flex items-center justify-center border border-transparent hover:border-overdue/20 transition-colors"
+                    className="text-xs text-overdue hover:bg-overdue/10 w-7 h-7 rounded-lg flex items-center justify-center border border-transparent hover:border-overdue/20 transition-colors flex-shrink-0"
                     title="Delete invoice"
                   >
                     {deletingInvoice === inv.id ? '…' : '🗑'}
