@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
-import { StaggerGroup, StaggerCard } from '@/components/stagger-in'
 import { HeroBackground } from '@/components/hero-background'
 
 const heroFade = {
@@ -13,32 +13,72 @@ const heroFade = {
   })
 }
 
+const fadeUp = {
+  hidden: { opacity: 0, y: 32 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }
+  }
+}
+
+const staggerContainer = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } }
+}
+
+const featureCards = [
+  {
+    title: 'Clients, saved once',
+    desc: 'Name, email, GST number, address — stored once and reused on every invoice. No retyping GST numbers project after project.',
+    image: '/screenshots/clients.png',
+  },
+  {
+    title: 'Templates with milestones built in',
+    desc: 'Logo Design, Website, Social Media, UI/UX — pick one and milestones (tokens) are pre-filled with typical deliverables and ₹ values. Or start Custom.',
+    image: '/screenshots/projects.png',
+  },
+  {
+    title: 'One dashboard, every project',
+    desc: 'Active projects, milestones pending approval, and unbilled amount — at a glance. No spreadsheet required.',
+    image: '/screenshots/dashboard.png',
+  },
+  {
+    title: 'Invoices that write themselves',
+    desc: 'Client approves a milestone via a one-click link — no login needed on their end. Approved milestones become invoice line items automatically.',
+    image: '/screenshots/invoices.png',
+  },
+]
+
 export default function Home() {
   return (
     <main className="relative min-h-screen bg-black overflow-hidden">
       <HeroBackground />
 
-      <motion.nav
+      <motion.div
         initial={{ opacity: 0, y: -16 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="relative z-10 border-b border-white/10 px-8 py-4 flex justify-between items-center"
+        className="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl"
       >
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-white rounded-lg flex items-center justify-center">
-            <span className="text-black text-xs font-mono font-bold">T</span>
-          </div>
-          <span className="text-lg font-semibold tracking-tight text-white">TokenPay</span>
-        </div>
-        <Link
-          href="/login"
-          className="text-sm font-medium bg-white/10 border border-white/20 text-white px-4 py-2 rounded-xl hover:bg-white/20 transition-all hover:scale-105 active:scale-95"
-        >
-          Get started
-        </Link>
-      </motion.nav>
+        <nav className="flex items-center justify-between gap-4 rounded-full border border-white/10 bg-white/[0.06] backdrop-blur-xl px-4 py-2 shadow-2xl">
+          <Link href="/" className="flex items-center gap-2 pl-1">
+            <div className="w-6 h-6 bg-white rounded-md flex items-center justify-center shrink-0">
+              <span className="text-black text-[10px] font-mono font-bold">T</span>
+            </div>
+            <span className="text-sm font-semibold tracking-tight text-white hidden sm:inline">TokenPay</span>
+          </Link>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-8 pt-24 pb-16 text-center space-y-6">
+          <Link
+            href="/login"
+            className="text-xs font-medium bg-white text-black px-4 py-2 rounded-full hover:bg-white/90 transition-all hover:scale-105 active:scale-95 shrink-0"
+          >
+            Get started
+          </Link>
+        </nav>
+      </motion.div>
+
+      <div className="relative z-10 max-w-4xl mx-auto px-8 pt-32 pb-6 text-center space-y-6">
         <motion.div
           custom={0}
           initial="hidden"
@@ -46,11 +86,8 @@ export default function Home() {
           variants={heroFade}
           className="inline-flex items-center gap-2 bg-white/5 border border-white/10 rounded-full px-4 py-1.5 text-xs text-white/60 font-medium"
         >
-          <span className=""></span>
           Built for Indian freelancers
         </motion.div>
-          
-        
 
         <motion.h1
           custom={1}
@@ -99,7 +136,7 @@ export default function Home() {
           initial="hidden"
           animate="show"
           variants={heroFade}
-          className="pt-8 flex justify-center"
+          className="pt-2 flex justify-center"
         >
           <motion.svg
             width="20"
@@ -117,25 +154,88 @@ export default function Home() {
         </motion.div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-8 py-16" id="how-it-works">
-        <h2 className="text-center text-2xl font-semibold mb-12 text-white">How it works</h2>
-        <StaggerGroup className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-          {[
-            { step: '01', title: 'Create a project', desc: 'Pick a template - Logo Design, Website, UI/UX. Tokens are pre-filled.' },
-            { step: '02', title: 'Mark milestones done', desc: 'Click Mark Complete. Client gets a one-click approval link. No signup needed.' },
-            { step: '03', title: 'Invoice generates itself', desc: 'Approved milestones become line items. Click Generate - GST invoice is ready.' },
-          ].map((item) => (
-            <StaggerCard
-              key={item.step}
-              className="rounded-2xl p-6 space-y-3 border border-white/10 bg-white/[0.03] backdrop-blur-sm hover:border-white/20 hover:bg-white/[0.05] transition-colors"
+      {/* Feature card pairs */}
+      <div className="relative z-10 max-w-5xl mx-auto px-8 pt-4 pb-20" id="how-it-works">
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-100px' }}
+          variants={fadeUp}
+          className="text-center mb-10"
+        >
+          <h2 className="text-2xl sm:text-3xl font-semibold mb-3 text-white">How it works</h2>
+          <p className="text-white/40 text-sm max-w-lg mx-auto">
+            From adding a client to getting paid , no manual invoicing anywhere in between.
+          </p>
+        </motion.div>
+
+        <motion.div
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-80px' }}
+          variants={staggerContainer}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
+          {featureCards.map((card) => (
+            <motion.div
+              key={card.title}
+              variants={fadeUp}
+              className="rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-sm overflow-hidden hover:border-white/20 hover:bg-white/[0.05] transition-colors"
             >
-              <span className="font-mono text-xs font-medium text-white/30">{item.step}</span>
-              <h3 className="font-semibold text-white">{item.title}</h3>
-              <p className="text-sm text-white/50 leading-relaxed">{item.desc}</p>
-            </StaggerCard>
+              <div className="bg-black/40">
+                {card.image ? (
+                  <div className="flex flex-col">
+                    <div className="h-8 bg-white/[0.04] border-b border-white/10 flex items-center gap-1.5 px-3 shrink-0">
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ff5f56]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#ffbd2e]" />
+                      <span className="w-2.5 h-2.5 rounded-full bg-[#27c93f]" />
+                    </div>
+                    <div className="relative aspect-[16/10] bg-black">
+                      <Image
+                        src={card.image}
+                        alt={card.title}
+                        fill
+                        className="object-contain p-3"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="aspect-[16/10] flex items-center justify-center">
+                    <span className="text-white/20 text-sm">Invoice preview</span>
+                  </div>
+                )}
+              </div>
+              <div className="p-6 space-y-2">
+                <h3 className="font-semibold text-white text-lg">{card.title}</h3>
+                <p className="text-sm text-white/50 leading-relaxed">{card.desc}</p>
+              </div>
+            </motion.div>
           ))}
-        </StaggerGroup>
+        </motion.div>
       </div>
+
+      {/* Dark statement banner */}
+      <motion.div
+        initial="hidden"
+        whileInView="show"
+        viewport={{ once: true, margin: '-100px' }}
+        variants={fadeUp}
+        className="relative z-10 max-w-5xl mx-auto px-8 py-6"
+      >
+        <div className="relative rounded-3xl border border-white/10 bg-white/[0.02] overflow-hidden py-24 px-8 text-center">
+          <div className="absolute -top-10 -left-10 w-40 h-40 rounded-[3rem] bg-white/[0.03] rotate-12" />
+          <div className="absolute -top-10 -right-10 w-40 h-40 rounded-[3rem] bg-white/[0.03] -rotate-12" />
+          <div className="absolute -bottom-10 -left-10 w-40 h-40 rounded-[3rem] bg-white/[0.03] -rotate-12" />
+          <div className="absolute -bottom-10 -right-10 w-40 h-40 rounded-[3rem] bg-white/[0.03] rotate-12" />
+
+          <h2 className="relative text-2xl sm:text-4xl font-semibold text-white leading-snug max-w-2xl mx-auto">
+            Stop chasing approvals in WhatsApp.{' '}
+            <span className="inline-block bg-[#2D5DF0] text-white px-3 py-1 rounded-lg">
+              Let the link do it.
+            </span>
+          </h2>
+        </div>
+      </motion.div>
 
       <div className="relative z-10 border-t border-white/10 px-8 py-6 text-center">
         <p className="text-xs text-white/30">TokenPay - Built by Chavi Sharma</p>

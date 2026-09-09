@@ -17,6 +17,7 @@ export default function Dashboard() {
       await new Promise(resolve => setTimeout(resolve, 500))
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
+      console.log('Logged in as:', data.user.id, data.user.email)
 
       const { data: profile } = await supabase.from('users').select('name').eq('id', data.user.id).single()
       setProfileName(profile?.name || '')
