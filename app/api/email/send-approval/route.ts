@@ -1,29 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Resend } from 'resend'
-import { createClient } from '@/lib/supabase'
+import { requireUser } from '@/lib/supabase-server'
+import { supabaseAdmin } from '@/lib/supabase-admin'
+import { emailApprovalLink, submitMilestone } from '@/lib/approval'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
+// Re-send the approval email to the client's address on file (issues a fresh link).
 export async function POST(request: NextRequest) {
-  const { tokenId, clientEmail, clientName, tokenName, projectName, value } = await request.json()
+  const { user, supabase } = await requireUser()
+  if (!user) return NextResponse.json({ error: 'Not logged in' }, { status: 401 })
 
-  const supabase = createClient()
+  const { tokenId } = await request.json().catch(() => ({}))
+  const { data: token } = await supabase.from('tokens').select('id, status').eq('id', tokenId).single()
+  if (!token) return NextResponse.json({ error: 'Milestone not found' }, { status: 404 })
+  if (token.status !== 'submitted' && token.status !== 'disputed') {
+    return NextResponse.json({ error: 'Milestone is not awaiting approval' }, { status: 400 })
+  }
 
-  const magicToken = crypto.randomUUID()
-  await supabase.from('client_sessions').insert({
-    token_id: tokenId,
-    magic_token: magicToken,
-    expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-  })
-
-  const approvalUrl = process.env.NEXT_PUBLIC_APP_URL + '/approve/' + magicToken
-
-  await resend.emails.send({
-    from: 'TokenPay <onboarding@resend.dev>',
-    to: 'chavisharma977@gmail.com',
-    subject: 'Action needed: Approve ' + tokenName + ' on ' + projectName,
-    html: '<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:24px"><h2>Hi ' + clientName + ',</h2><p>Your freelancer has completed a milestone and needs your approval.</p><div style="background:#f5f5f5;border-radius:12px;padding:16px;margin:24px 0"><p style="margin:0;font-size:13px;color:#666">Milestone</p><p style="margin:4px 0 0;font-size:18px;font-weight:bold">' + tokenName + '</p><p style="margin:8px 0 0;font-size:13px;color:#666">Project: ' + projectName + '</p><p style="margin:4px 0 0;font-size:24px;font-weight:bold">Rs. ' + value + '</p></div><a href="' + approvalUrl + '" style="display:block;background:#000;color:#fff;text-align:center;padding:14px;border-radius:10px;text-decoration:none;font-weight:bold;font-size:16px">Review and Approve</a><p style="margin-top:24px;font-size:12px;color:#999">If you do not respond within 7 days, this milestone will be auto-approved.</p></div>'
-  })
-
-  return NextResponse.json({ success: true })
+  const admin = supabaseAdmin()
+  const magicToken = await submitMilestone(admin, tokenId)
+  const r: any = await emailApprovalLink(admin, tokenId, magicToken)
+  if (!r.ok) return NextResponse.json({ error: r.reason || 'Email failed', magicToken }, { status: 502 })
+  return NextResponse.json({ success: true, magicToken })
 }

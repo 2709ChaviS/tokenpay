@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
-  const [form, setForm] = useState({ name: '', gst_number: '', pan_number: '' })
+  const [form, setForm] = useState({ name: '', business_name: '', gst_number: '', pan_number: '', address: '', upi_id: '', bank_details: '' })
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -17,7 +17,7 @@ export default function SettingsPage() {
       if (!data.user) { router.push('/login'); return }
       setUser(data.user)
       const { data: profile } = await supabase.from('users').select('*').eq('id', data.user.id).single()
-      if (profile) setForm({ name: profile.name || '', gst_number: profile.gst_number || '', pan_number: profile.pan_number || '' })
+      if (profile) setForm({ name: profile.name || '', business_name: profile.business_name || '', gst_number: profile.gst_number || '', pan_number: profile.pan_number || '', address: profile.address || '', upi_id: profile.upi_id || '', bank_details: profile.bank_details || '' })
     })
   }, [])
 
@@ -25,7 +25,7 @@ export default function SettingsPage() {
     setSaving(true)
     setError('')
     const supabase = createClient()
-    const { error } = await supabase.from('users').update(form).eq('id', user.id)
+    const { error } = await supabase.from('users').upsert({ id: user.id, email: user.email, ...form })
 
     if (error) {
       setError('Could not save: ' + error.message)
@@ -98,9 +98,13 @@ export default function SettingsPage() {
           </div>
 
           {[
-            { key: 'name', label: 'Full Name', placeholder: 'Chavi Sharma' },
-            { key: 'gst_number', label: 'GST Number', placeholder: '29ABCDE1234F1Z5' },
+            { key: 'name', label: 'Full Name', placeholder: 'Your name' },
+            { key: 'business_name', label: 'Business / Studio Name (shown on invoices)', placeholder: 'Optional' },
+            { key: 'address', label: 'Address (shown on invoices)', placeholder: 'City, State, PIN' },
+            { key: 'gst_number', label: 'GST Number (leave blank if not GST-registered: no GST will be charged)', placeholder: '29ABCDE1234F1Z5' },
             { key: 'pan_number', label: 'PAN Number', placeholder: 'ABCDE1234F' },
+            { key: 'upi_id', label: 'UPI ID (clients can pay you directly)', placeholder: 'name@bank' },
+            { key: 'bank_details', label: 'Bank details (account name, A/C no., IFSC)', placeholder: 'Optional' },
           ].map(field => (
             <div key={field.key}>
               <label className="text-sm font-medium text-white/60 block mb-1.5">{field.label}</label>

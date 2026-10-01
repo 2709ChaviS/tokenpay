@@ -7,6 +7,8 @@ export default function PayPage() {
   const [invoice, setInvoice] = useState<any>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'paid' | 'error'>('loading')
   const [paying, setPaying] = useState(false)
+  const [seller, setSeller] = useState<any>(null)
+  const [online, setOnline] = useState(true)
   const params = useParams()
 
   useEffect(() => {
@@ -15,6 +17,8 @@ export default function PayPage() {
       .then(data => {
         if (data.error) { setStatus('error'); return }
         setInvoice(data.invoice)
+        setSeller(data.seller)
+        setOnline(!!data.onlinePayments)
         setStatus(data.invoice.payment_status === 'paid' ? 'paid' : 'ready')
       })
       .catch(() => setStatus('error'))
@@ -35,7 +39,7 @@ export default function PayPage() {
       key: data.keyId,
       amount: data.amount,
       currency: 'INR',
-      name: 'TokenPay',
+      name: seller?.name || 'Invoice payment',
       description: 'Invoice ' + data.invoiceNumber,
       order_id: data.orderId,
       handler: async function (response: any) {
@@ -114,17 +118,30 @@ export default function PayPage() {
             Billed to: <strong className="text-white">{invoice?.clients?.name}</strong>
           </p>
 
-          <button
-            onClick={handlePay}
-            disabled={paying}
-            className="w-full bg-white text-black py-3 rounded-xl font-medium hover:bg-white/90 disabled:opacity-50 transition-colors"
-          >
-            {paying ? 'Processing...' : 'Pay Now'}
-          </button>
+          {seller?.name && <p className="text-sm text-white/50">Payable to: <strong className="text-white">{seller.name}</strong></p>}
+          {invoice?.due_date && <p className="text-xs text-white/40">Due by {new Date(invoice.due_date).toLocaleDateString('en-IN')}</p>}
 
-          <p className="text-xs text-white/25 text-center">
-            Secure payment powered by Razorpay
-          </p>
+          {online && (
+            <>
+              <button
+                onClick={handlePay}
+                disabled={paying}
+                className="w-full bg-white text-black py-3 rounded-xl font-medium hover:bg-white/90 disabled:opacity-50 transition-colors"
+              >
+                {paying ? 'Processing...' : 'Pay Now'}
+              </button>
+              <p className="text-xs text-white/25 text-center">Secure payment powered by Razorpay</p>
+            </>
+          )}
+
+          {(seller?.upi_id || seller?.bank_details) && (
+            <div className="rounded-xl border border-white/10 p-4 space-y-2 text-sm">
+              <p className="text-xs text-white/40 uppercase tracking-wide">{online ? 'Or pay directly' : 'Pay directly'}</p>
+              {seller?.upi_id && <p className="text-white/80">UPI: <span className="font-mono">{seller.upi_id}</span></p>}
+              {seller?.bank_details && <p className="text-white/80 whitespace-pre-line">{seller.bank_details}</p>}
+              <p className="text-xs text-white/30">Use {invoice?.invoice_number} as the reference.</p>
+            </div>
+          )}
         </div>
       </main>
     </>

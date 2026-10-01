@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import { useRouter } from 'next/navigation'
@@ -52,55 +52,33 @@ export default function InvoicesPage() {
 
   async function generateInvoice(clientId: string, clientItems: any[]) {
     setGeneratingFor(clientId)
-    const supabase = createClient()
-    const subtotal = clientItems.reduce((sum, i) => sum + (i.amount_inr || 0), 0)
-    const gstTotal = clientItems.reduce((sum, i) => sum + (i.gst_amount || 0), 0)
-    const grandTotal = clientItems.reduce((sum, i) => sum + (i.final_amount || 0), 0)
-    const invoiceNumber = 'INV-2025-' + String(invoices.length + 1).padStart(3, '0')
-
-    const { data: invoice, error } = await supabase.from('invoices').insert({
-      invoice_number: invoiceNumber,
-      freelancer_id: user.id,
-      client_id: clientId,
-      items: clientItems,
-      subtotal,
-      gst_total: gstTotal,
-      grand_total: grandTotal,
-      status: 'draft',
-    }).select().single()
-
-    if (error) {
-      alert('Could not generate invoice: ' + error.message)
-      setGeneratingFor(null)
-      return
-    }
-
-    const itemIds = clientItems.map(i => i.id)
-    const tokenIds = clientItems.map(i => i.token_id).filter(Boolean)
-
-    await supabase.from('invoice_items').delete().in('id', itemIds)
-    if (tokenIds.length > 0) {
-      await supabase.from('tokens').update({ status: 'invoiced' }).in('id', tokenIds)
-    }
-
-    const projectIds = [...new Set(clientItems.map(i => i.project_id).filter(Boolean))]
-    for (const projectId of projectIds) {
-      const { data: allTokens } = await supabase.from('tokens').select('status').eq('project_id', projectId)
-      const allDone = (allTokens || []).every((t: any) => t.status === 'invoiced' || t.status === 'paid')
-      if (allDone && allTokens && allTokens.length > 0) {
-        await supabase.from('projects').update({ status: 'completed' }).eq('id', projectId)
-      }
-    }
-
-    if (invoice) {
-      setInvoices([invoice, ...invoices])
-      setItems(items.filter(i => !itemIds.includes(i.id)))
-      alert('Invoice ' + invoiceNumber + ' generated! Total: Rs. ' + grandTotal.toLocaleString())
-    }
+    const res = await fetch('/api/invoices/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ clientId }),
+    })
+    const data = await res.json()
     setGeneratingFor(null)
+    if (data.error) { alert('Could not generate invoice: ' + data.error); return }
+    const ids = clientItems.map(i => i.id)
+    setInvoices([data.invoice, ...invoices])
+    setItems(items.filter(i => !ids.includes(i.id)))
+  }
+
+  async function markPaid(id: string) {
+    if (!confirm('Mark this invoice as paid (received via UPI / bank transfer)?')) return
+    const res = await fetch('/api/invoices/' + id + '/mark-paid', { method: 'POST' })
+    const data = await res.json()
+    if (data.error) { alert(data.error); return }
+    setInvoices(invoices.map(i => i.id === id ? { ...i, payment_status: 'paid', status: 'paid', paid_at: new Date().toISOString() } : i))
   }
 
   async function deleteInvoice(id: string) {
+    const target = invoices.find(i => i.id === id)
+    if (target && (target.payment_status === 'paid' || target.status === 'paid')) {
+      alert('Paid invoices are kept for your accounting records and cannot be deleted.')
+      return
+    }
     if (!confirm('Delete this invoice? This cannot be undone.')) return
     setDeletingInvoice(id)
     const supabase = createClient()
@@ -169,8 +147,8 @@ export default function InvoicesPage() {
                       <p className="text-xs text-white/40 mt-0.5">{item.projects?.name} · {item.clients?.name}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-mono font-medium text-sm text-white">₹{item.amount_inr?.toLocaleString()}</p>
-                      <p className="text-xs text-white/40">+GST ₹{item.gst_amount?.toLocaleString()}</p>
+                      <p className="font-mono font-medium text-sm text-white">₹{item.amount_inr?.toLocaleString('en-IN')}</p>
+                      {item.gst_rate > 0 && <p className="text-xs text-white/40">+GST ₹{item.gst_amount?.toLocaleString('en-IN')}</p>}
                     </div>
                   </div>
                 ))}
@@ -178,15 +156,15 @@ export default function InvoicesPage() {
               <div className="px-6 py-4 bg-white/[0.02] space-y-2">
                 <div className="flex justify-between text-sm text-white/40">
                   <span>Subtotal</span>
-                  <span className="font-mono">₹{subtotal.toLocaleString()}</span>
+                  <span className="font-mono">₹{subtotal.toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between text-sm text-white/40">
-                  <span>GST (18%)</span>
-                  <span className="font-mono">₹{(grandTotal - subtotal).toLocaleString()}</span>
+                  <span>{grandTotal - subtotal > 0 ? 'GST (18%)' : 'GST (not registered)'}</span>
+                  <span className="font-mono">₹{(grandTotal - subtotal).toLocaleString('en-IN')}</span>
                 </div>
                 <div className="flex justify-between font-semibold text-lg pt-2 border-t border-white/10 text-white">
                   <span>Total</span>
-                  <span className="font-mono">₹{grandTotal.toLocaleString()}</span>
+                  <span className="font-mono">₹{grandTotal.toLocaleString('en-IN')}</span>
                 </div>
                 <button
                   onClick={() => generateInvoice(clientId, clientItems)}
@@ -229,6 +207,14 @@ export default function InvoicesPage() {
                       className="text-xs font-medium bg-accent/10 text-accent border border-accent/30 px-3 py-1.5 rounded-full hover:bg-accent/20 transition-colors whitespace-nowrap"
                     >
                       {copiedLink === inv.payment_link_token ? 'Copied!' : 'Copy Pay Link'}
+                    </button>
+                  )}
+                  {!isPaid && (
+                    <button
+                      onClick={() => markPaid(inv.id)}
+                      className="text-xs font-medium bg-paid/10 text-paid border border-paid/30 px-3 py-1.5 rounded-full hover:bg-paid/20 transition-colors whitespace-nowrap"
+                    >
+                      Mark paid
                     </button>
                   )}
                   <InvoiceDownloadButton invoice={inv} />

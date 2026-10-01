@@ -30,29 +30,24 @@ export default function ProjectPage() {
     load()
   }, [])
 
- async function markComplete(tokenId: string) {
-  const supabase = createClient()
-  await supabase.from('tokens').update({
-    status: 'submitted',
-    freelancer_approved_at: new Date().toISOString(),
-    auto_approve_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-  }).eq('id', tokenId)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [emailNote, setEmailNote] = useState<string | null>(null)
 
-  const res = await fetch('/api/create-approval-link', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ tokenId })
-  })
-  const data = await res.json()
-
-  if (data.error) {
-    alert('Could not create approval link: ' + data.error)
-    return
+  async function markComplete(tokenId: string) {
+    setBusy(tokenId)
+    setEmailNote(null)
+    const res = await fetch('/api/create-approval-link', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tokenId, sendEmail: !!client?.email })
+    })
+    const data = await res.json()
+    setBusy(null)
+    if (data.error) { alert('Could not submit milestone: ' + data.error); return }
+    setApprovalLink(window.location.origin + '/approve/' + data.magicToken)
+    setEmailNote(data.emailed ? `Email sent to ${client?.email}.` : (client?.email ? `Email not sent (${data.emailNote || 'not configured'}). Share the link manually.` : 'Client has no email. Share the link manually.'))
+    setTokens(tokens.map(t => t.id === tokenId ? { ...t, status: 'submitted', dispute_reason: null } : t))
   }
-
-  setApprovalLink(window.location.origin + '/approve/' + data.magicToken)
-  setTokens(tokens.map(t => t.id === tokenId ? { ...t, status: 'submitted' } : t))
-}
 
   async function copyLink() {
     if (!approvalLink) return
@@ -126,7 +121,7 @@ export default function ProjectPage() {
               onClick={() => router.push('/settings')}
               className="w-8 h-8 bg-white/10 border border-white/10 rounded-full flex items-center justify-center cursor-pointer hover:ring-2 hover:ring-white/20 transition-all"
             >
-              <span className="text-xs font-mono font-bold text-white">CH</span>
+              <span className="text-xs font-mono font-bold text-white">{client?.name?.slice(0, 2).toUpperCase() || '··'}</span>
             </div>
           </div>
         </div>
@@ -208,6 +203,7 @@ export default function ProjectPage() {
                 Send via Email
               </button>
             </div>
+            {emailNote && <p className="text-xs text-white/50">{emailNote}</p>}
             <p className="text-xs text-white/25">Auto-approves in 7 days if client does not respond.</p>
           </div>
         )}
@@ -235,6 +231,7 @@ export default function ProjectPage() {
                   <div>
                     <p className="font-medium text-sm text-white">{token.name}</p>
                     {token.description && <p className="text-xs text-white/40 mt-0.5">{token.description}</p>}
+                    {token.status === 'disputed' && token.dispute_reason && <p className="text-xs text-overdue mt-1">Client says: {token.dispute_reason}</p>}
                     <div className="flex items-center gap-2 mt-1.5">
                       <span className="font-mono text-sm font-medium text-white">₹{token.value_inr?.toLocaleString('en-IN')}</span>
                       <span className={'text-xs px-2 py-0.5 rounded-full font-medium ' + config.cls}>{config.label}</span>
@@ -242,12 +239,13 @@ export default function ProjectPage() {
                   </div>
                 </div>
                 <div className="flex-shrink-0">
-                  {token.status === 'pending' && (
+                  {(token.status === 'pending' || token.status === 'disputed') && (
                     <button
+                      disabled={busy === token.id}
                       onClick={() => markComplete(token.id)}
                       className="shine btn-press bg-white text-black px-4 py-2 rounded-xl text-xs font-semibold hover:bg-white/90 transition-colors"
                     >
-                      Mark Complete
+                      {busy === token.id ? 'Sending…' : token.status === 'disputed' ? 'Resubmit' : 'Mark Complete'}
                     </button>
                   )}
                   {token.status === 'submitted' && (
@@ -261,11 +259,7 @@ export default function ProjectPage() {
                       <span className="text-paid text-xs font-bold">✓</span>
                     </div>
                   )}
-                  {token.status === 'disputed' && (
-                    <div className="w-8 h-8 bg-overdue/10 rounded-xl flex items-center justify-center border border-overdue/30">
-                      <span className="text-overdue text-sm font-bold">!</span>
-                    </div>
-                  )}
+
                 </div>
               </div>
             )

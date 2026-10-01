@@ -5,6 +5,10 @@ import { useParams } from 'next/navigation'
 export default function ApprovePage() {
   const [token, setToken] = useState<any>(null)
   const [project, setProject] = useState<any>(null)
+  const [gstRate, setGstRate] = useState(0)
+  const [from, setFrom] = useState<string | null>(null)
+  const [errMsg, setErrMsg] = useState('This link may have expired or already been used.')
+  const [submitting, setSubmitting] = useState(false)
   const [status, setStatus] = useState<'loading' | 'pending' | 'approved' | 'disputed' | 'already_done' | 'error'>('loading')
   const [disputeReason, setDisputeReason] = useState('')
   const [showDispute, setShowDispute] = useState(false)
@@ -14,34 +18,40 @@ export default function ApprovePage() {
     fetch('/api/approve/' + params.magic_token)
       .then(res => res.json())
       .then(data => {
-        if (data.error) { setStatus('error'); return }
+        if (data.error) { setErrMsg(data.error); setStatus('error'); return }
+        setGstRate(data.gstRate || 0)
+        setFrom(data.from)
         setToken(data.token)
         setProject(data.project)
-        if (data.token?.status === 'approved') setStatus('already_done')
+        if (data.token?.status !== 'submitted') setStatus('already_done')
         else setStatus('pending')
       })
       .catch(() => setStatus('error'))
   }, [])
 
   async function handleApprove() {
+    if (submitting) return
+    setSubmitting(true)
     const res = await fetch('/api/approve/' + params.magic_token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'approve' })
     })
     const data = await res.json()
-    if (data.error) { setStatus('error'); return }
+    if (data.error) { setErrMsg(data.error); setStatus('error'); return }
     setStatus('approved')
   }
 
   async function handleDispute() {
+    if (submitting) return
+    setSubmitting(true)
     const res = await fetch('/api/approve/' + params.magic_token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action: 'dispute', disputeReason })
     })
     const data = await res.json()
-    if (data.error) { setStatus('error'); return }
+    if (data.error) { setErrMsg(data.error); setStatus('error'); return }
     setStatus('disputed')
   }
 
@@ -56,7 +66,7 @@ export default function ApprovePage() {
       <div className="text-center space-y-4 p-8">
         <div className="text-5xl">⚠️</div>
         <h2 className="text-2xl font-bold">Link not valid</h2>
-        <p className="text-gray-500">This link may have expired or already been used.</p>
+        <p className="text-gray-500">{errMsg}</p>
       </div>
     </main>
   )
@@ -66,7 +76,7 @@ export default function ApprovePage() {
       <div className="text-center space-y-4 p-8">
         <div className="text-5xl">✅</div>
         <h2 className="text-2xl font-bold">Approved!</h2>
-        <p className="text-gray-500">Milestone approved. The freelancer has been notified.</p>
+        <p className="text-gray-500">Thank you. The freelancer has been notified.</p>
       </div>
     </main>
   )
@@ -85,8 +95,8 @@ export default function ApprovePage() {
     <main className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="text-center space-y-4 p-8">
         <div className="text-5xl">✓</div>
-        <h2 className="text-2xl font-bold">Already approved</h2>
-        <p className="text-gray-500">This milestone was already approved.</p>
+        <h2 className="text-2xl font-bold">Already responded</h2>
+        <p className="text-gray-500">This milestone has already been actioned. Nothing more to do.</p>
       </div>
     </main>
   )
@@ -102,19 +112,20 @@ export default function ApprovePage() {
 
         <div className="bg-gray-50 rounded-xl p-4">
           <p className="text-sm text-gray-500">Amount</p>
-          <p className="text-3xl font-bold">₹{token?.value_inr?.toLocaleString()}</p>
-          <p className="text-xs text-gray-400 mt-1">+ 18% GST = ₹{(token?.value_inr * 1.18)?.toLocaleString()}</p>
+          <p className="text-3xl font-bold">₹{token?.value_inr?.toLocaleString('en-IN')}</p>
+          {gstRate > 0 && <p className="text-xs text-gray-400 mt-1">+ {gstRate}% GST = ₹{(token?.value_inr * (1 + gstRate / 100))?.toLocaleString('en-IN')}</p>}
         </div>
 
         <p className="text-sm text-gray-500">
-          Project: <strong>{project?.name}</strong>
+          Project: <strong>{project?.name}</strong>{from && <> · from <strong>{from}</strong></>}
         </p>
 
         {!showDispute ? (
           <div className="space-y-3">
             <button
               onClick={handleApprove}
-              className="w-full bg-black text-white py-3 rounded-xl font-medium hover:bg-gray-800"
+              disabled={submitting}
+              className="w-full bg-black text-white py-3 rounded-xl font-medium hover:bg-gray-800 disabled:opacity-50"
             >
               ✓ Approve this milestone
             </button>
@@ -135,7 +146,7 @@ export default function ApprovePage() {
             />
             <button
               onClick={handleDispute}
-              disabled={!disputeReason}
+              disabled={!disputeReason.trim() || submitting}
               className="w-full bg-red-500 text-white py-3 rounded-xl font-medium hover:bg-red-600 disabled:opacity-50"
             >
               Submit issue

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -10,7 +10,8 @@ import { HeroBackground } from '@/components/hero-background';
 
 const DEMO_EMAIL = 'demo@tokenpay.app';
 const DEMO_PASSWORD = 'Demo2026Pass';
-const SUPPORT_EMAIL = 'chavisharma977@gmail.com'; // change if you want a different inbox
+const SUPPORT_EMAIL = process.env.NEXT_PUBLIC_SUPPORT_EMAIL || '';
+const DEMO_ENABLED = process.env.NEXT_PUBLIC_DEMO_ENABLED === 'true';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -23,6 +24,7 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -30,10 +32,19 @@ export default function LoginPage() {
     setLoading(true);
 
     if (mode === 'signup') {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      });
       setLoading(false);
       if (error) {
         setError(error.message);
+        return;
+      }
+      if (!data.session) {
+        setInfo('Check your inbox and click the confirmation link, then log in.');
+        setMode('login');
         return;
       }
       router.push('/dashboard');
@@ -49,6 +60,17 @@ export default function LoginPage() {
     }
     router.push('/dashboard');
     router.refresh();
+  }
+
+  async function handleForgot() {
+    setError(null);
+    setInfo(null);
+    if (!email) { setError('Enter your email above first.'); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/auth/callback?next=/reset-password`,
+    });
+    if (error) { setError(error.message); return; }
+    setInfo('Password reset link sent. Check your inbox.');
   }
 
   async function handleDemoLogin() {
@@ -161,15 +183,21 @@ export default function LoginPage() {
                 : (mode === 'signup' ? 'Create account' : 'Log in')}
             </Button>
 
-            <p className="text-xs text-white/30 text-center leading-relaxed">
-              Beta version — forgot your password? Email{' '}
-              <a href={`mailto:${SUPPORT_EMAIL}`} className="text-white/50 underline hover:text-white/70">
-                {SUPPORT_EMAIL}
-              </a>{' '}
-              and I'll reset it manually. Self-serve password recovery is under work.
-            </p>
+            {info && <p className="text-sm text-emerald-400">{info}</p>}
+            {mode === 'login' && (
+              <button type="button" onClick={handleForgot} className="w-full text-xs text-white/40 hover:text-white/70 underline">
+                Forgot password?
+              </button>
+            )}
+            {SUPPORT_EMAIL && (
+              <p className="text-xs text-white/30 text-center">
+                Need help? <a href={`mailto:${SUPPORT_EMAIL}`} className="underline hover:text-white/70">{SUPPORT_EMAIL}</a>
+              </p>
+            )}
           </form>
 
+          {DEMO_ENABLED && (
+          <>
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-white/10" />
@@ -194,6 +222,8 @@ export default function LoginPage() {
               {demoLoading ? 'Logging in…' : 'View live demo →'}
             </Button>
           </div>
+          </>
+          )}
         </div>
       </div>
     </div>

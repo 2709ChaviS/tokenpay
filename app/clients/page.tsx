@@ -20,40 +20,16 @@ export default function ClientsPage() {
   }, [])
 
   async function deleteClient(id: string) {
-    if (!confirm('Delete this client? All their projects, tokens, and invoices will also be deleted.')) return
-    setDeleting(id)
     const supabase = createClient()
-
-    const { data: clientProjects } = await supabase.from('projects').select('id').eq('client_id', id)
-    const projectIds = (clientProjects || []).map((p: any) => p.id)
-
-    if (projectIds.length > 0) {
-      const { data: projectTokens } = await supabase.from('tokens').select('id').in('project_id', projectIds)
-      const tokenIds = (projectTokens || []).map((t: any) => t.id)
-
-      if (tokenIds.length > 0) {
-        const { error: sessionsErr } = await supabase.from('client_sessions').delete().in('token_id', tokenIds)
-        if (sessionsErr) { alert('Could not delete: ' + sessionsErr.message); setDeleting(null); return }
-      }
+    const { count } = await supabase.from('invoices').select('id', { count: 'exact', head: true }).eq('client_id', id)
+    if (count && count > 0) {
+      alert('This client has invoices. Invoices are kept for your accounting records, so the client cannot be deleted.')
+      return
     }
-
-    const { error: itemsErr } = await supabase.from('invoice_items').delete().eq('client_id', id)
-    if (itemsErr) { alert('Could not delete: ' + itemsErr.message); setDeleting(null); return }
-
-    const { error: invoicesErr } = await supabase.from('invoices').delete().eq('client_id', id)
-    if (invoicesErr) { alert('Could not delete: ' + invoicesErr.message); setDeleting(null); return }
-
-    if (projectIds.length > 0) {
-      const { error: tokensErr } = await supabase.from('tokens').delete().in('project_id', projectIds)
-      if (tokensErr) { alert('Could not delete: ' + tokensErr.message); setDeleting(null); return }
-
-      const { error: projectsErr } = await supabase.from('projects').delete().eq('client_id', id)
-      if (projectsErr) { alert('Could not delete: ' + projectsErr.message); setDeleting(null); return }
-    }
-
-    const { error: clientErr } = await supabase.from('clients').delete().eq('id', id)
-    if (clientErr) { alert('Could not delete: ' + clientErr.message); setDeleting(null); return }
-
+    if (!confirm('Delete this client and all their projects and milestones? This cannot be undone.')) return
+    setDeleting(id)
+    const { error } = await supabase.from('clients').delete().eq('id', id)
+    if (error) { alert('Could not delete: ' + error.message); setDeleting(null); return }
     setClients(clients.filter(c => c.id !== id))
     setDeleting(null)
   }

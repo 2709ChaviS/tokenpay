@@ -238,7 +238,7 @@ export default function Home() {
       </motion.div>
 
       <div className="relative z-10 border-t border-white/10 px-8 py-6 text-center">
-        <p className="text-xs text-white/30">TokenPay - Built by Chavi Sharma</p>
+        <p className="text-xs text-white/30">TokenPay - Built by Chavi Sharma · <a href="/terms" className="underline">Terms</a> · <a href="/privacy" className="underline">Privacy</a></p>
       </div>
     </main>
   )
